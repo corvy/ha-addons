@@ -28,3 +28,4 @@ ports:
   2947/tcp: 2947
 devices:
   - /dev/pps0
+image: gpsd2mqtt/{arch}-gpsd2mqtt
