@@ -1,0 +1,25 @@
+---
+configuration:
+  device:
+    name: GPS Device
+    description: Serial device providing GPS data, must be supported by GPSD
+  mqtt_broker:
+    name: MQTT Server IP or Hostname
+    description: If not configured it will default to use the internal Mosquitto broker, addon must be installed.
+  mqtt_port:
+    name: MQTT Server port
+    description: If not configured it will default to 1883.
+  mqtt_username:
+    name: MQTT Username
+    description: If not configured it will default to use internal addon auth for Mosquitto add-on.
+  mqtt_pw:
+    name: MQTT Password
+    description: If not configured it will default to use internal addon auth for Mosquitto add-on.
+  debug:
+    name: Debug
+    description: Enable debugging to get more info in the logs in case of problems.
+  baudrate:
+    name: Baudrate
+    description: Serial device baudrate, defaults to 9600
+network:
+  2947/tcp: GPSD Port (default 2947)
