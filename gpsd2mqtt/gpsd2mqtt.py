@@ -59,7 +59,7 @@ client.on_log = on_log
 client.on_message = on_message
 
 # Set username and password, and connect to MQTT
-client.username_pw_set("mqtt", "***REMOVED***")
+client.username_pw_set(mqtt_username, mqtt_pw)
 client.connect(mqtt_broker, mqtt_port)
 
 # Create the device using the Home Assistant discovery protocol and set the state not_home
