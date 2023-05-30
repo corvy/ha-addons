@@ -3,7 +3,7 @@ description: >-
   This addon will run GPSD and serve the data to MQTT and show a device tracker device (device_tracker.gpsd_location). The addon uses Mosquitto MQTT but can also be configued to another broker if wanted. 
   Remember to install Mosquitto or another broker before setting up this addon.
 url: https://github.com/corvy/ha-addons/tree/main/gpsd2mqtt
-version: "0.0.101"
+version: "0.0.102"
 slug: "gpsd2mqtt"
 init: false
 arch:
