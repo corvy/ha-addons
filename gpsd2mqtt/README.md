@@ -2,10 +2,10 @@
 
 This is a [gpsd — a GPS service daemon](https://gpsd.gitlab.io/gpsd/) to MQTT Home Assistant Addon.
 
-My plan is to dynamically update my boats location in [Home Assistant](https://www.home-assistant.io/), but first *gpds* data input was required!
+This addon will run GPSD and serve the data to MQTT and show a device tracker device (device_tracker.gpsd_location). The addon uses Mosquitto MQTT but can also be configued to another broker if wanted.
 
-Basically this addon grabs the *gpsd* data from the configured serial port and publishes it to a MQTT broker (for instance [Mosquitto](https://mosquitto.org/)) via a [python script](gpsd2mqtt.py).
+Remember to install Mosquitto or another broker before setting up this addon.
 
-## Installation
+Installation requires you to set up a username and password to publish to MQTT. Also you must select the serial device for GPSD in the configuration.
 
-Instructions to come.
+The configuration is done via editing [config.yaml](config.yaml)
