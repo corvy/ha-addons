@@ -30,9 +30,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Compiled images and published
+<<<<<<< HEAD:gpsd2mqtt/changelog.md
 
 ## [0.0.103] - 2023-06-01
 
 ### Added
 
 - Changed username and password for MQTT to mandatory
+=======
+>>>>>>> 2561ebd43ed5405780174cbb2369efb1c92b51bd:gpsd2mqtt/CHANGELOG.md
