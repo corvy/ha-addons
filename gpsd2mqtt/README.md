@@ -8,4 +8,11 @@ Remember to install Mosquitto or another broker before setting up this addon.
 
 Installation requires you to set up a username and password to publish to MQTT. Also you must select the serial device for GPSD in the configuration.
 
-The configuration is done via editing [config.yaml](config.yaml)
+The configuration is done via editing the options: section of [config.yaml](config.yaml):
+
+```
+options:
+  device: null
+  mqtt_username: "mqtt"
+  mqtt_pw: "changeme"
+```
