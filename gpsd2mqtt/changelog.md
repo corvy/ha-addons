@@ -30,3 +30,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Compiled images and published
+
+## [0.0.103] - 2023-06-01
+
+### Added
+
+- Changed username and password for MQTT to mandatory
