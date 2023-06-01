@@ -1,5 +1,7 @@
 # GPSD to MQTT
 
+gpsd2mqtt/logo.png
+
 [gpsd — a GPS service daemon](https://gpsd.gitlab.io/gpsd/) to MQTT
 
 
