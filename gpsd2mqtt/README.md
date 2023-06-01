@@ -1,12 +1,13 @@
 # GPSD to MQTT
 
-gpsd2mqtt/logo.png
+![gpsd logo](gpsd2mqtt/logo.png)
 
-[gpsd — a GPS service daemon](https://gpsd.gitlab.io/gpsd/) to MQTT
+This is a [gpsd — a GPS service daemon](https://gpsd.gitlab.io/gpsd/) to MQTT Home Assistant Addon.
 
+My plan is to dynamically update my boats location in [Home Assistant](https://www.home-assistant.io/), but first GPSD data input was required! 
+
+Basically this addon grabs the gpsd data from the configured serial port and publishes it to a MQTT broker (for instance [Mosquitto](https://mosquitto.org/))
 
 ## Installation
 
-1. Add [this](https://github.com/casperklein/homeassistant-addons) Home Assistant add-ons repository to your Home Assistant instance.
-1. Install the Pi-hole add-on.
-1. Start the add-on.
+Instructions to come.
