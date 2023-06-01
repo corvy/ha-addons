@@ -41,8 +41,7 @@ def on_disconnect(client, userdata, rc):
     print("Disconnected from MQTT broker")
 
 def on_log(client, userdata, level, buf):
-    if debug:
-        print(buf)
+    print(buf)
 
 def on_message(client, userdata, msg):
     if debug:
@@ -72,6 +71,8 @@ json_config = '''{{
 }}'''.format(mqtt_state=mqtt_state, mqtt_attr=mqtt_attr)
 
 client.publish(mqtt_config, json_config)
+print(f"Published: {result} to topic: {mqtt_attr}")
+
 
 # Start the network loop to handle incoming and outgoing messages
 client.loop_start()
