@@ -71,8 +71,6 @@ json_config = '''{{
 }}'''.format(mqtt_state=mqtt_state, mqtt_attr=mqtt_attr)
 
 client.publish(mqtt_config, json_config)
-print(f"Published: {result} to topic: {mqtt_attr}")
-
 
 # Start the network loop to handle incoming and outgoing messages
 client.loop_start()
