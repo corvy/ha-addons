@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.0.106] - 2023-06-01
+
+### Added
+
+- Updated readme from h0bbel
+
 
 ## [0.0.105] - 2023-06-01
 
@@ -19,7 +25,6 @@
 ### Added
 
 - Compiled images and published
-<<<<<<< HEAD:gpsd2mqtt/changelog.md
 
 ## [0.0.101] - 2023-05-30
 
@@ -43,5 +48,3 @@
 
 
 
-=======
->>>>>>> 2561ebd43ed5405780174cbb2369efb1c92b51bd:gpsd2mqtt/CHANGELOG.md
