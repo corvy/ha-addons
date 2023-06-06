@@ -1,4 +1,5 @@
 import json
+import datetime
 import paho.mqtt.client as mqtt
 from gpsdclient import GPSDClient
 
@@ -18,6 +19,10 @@ mqtt_config = data.get("mqtt_config", "homeassistant/device_tracker/gpsd/config"
 mqtt_state = data.get("mqtt_state", "gpsd/state")
 mqtt_attr = data.get("mqtt_attr", "gpsd/attribute")
 debug = data.get("debug")
+# Variables used to publish updates to the
+summary_interval = 120 # Interval in seconds
+published_updates = 0
+last_summary_time = datetime.now()
 
 # Print the variables in use
 if debug:
@@ -41,12 +46,16 @@ def on_disconnect(client, userdata, rc):
     print("Disconnected from MQTT broker")
 
 def on_log(client, userdata, level, buf):
-    print(buf)
+     if debug:
+         print(buf)
 
 def on_message(client, userdata, msg):
     if debug:
         print("Received message: " + msg.topic + " " + str(msg.payload))
-
+    
+    # Update the published_updates count when a message is received
+    global published_updates
+    published_updates += 1
 
 # Now, create an instance of the MQTT client and set up the appropriate callbacks:
 client = mqtt.Client()
@@ -89,6 +98,12 @@ with GPSDClient(host="127.0.0.1") as gps_client:
             else:
                 state = "Unknown"
 
+            # Modify the attribute names so Home Assistant gets position in the device_tracker 
+            # (it expects longitute/latitude/altitude)
+            result["altitude"] = result.pop("alt")
+            result["longitude"] = result.pop("lon")
+            result["latitude"] = result.pop("lat")
+
             # Publish the GPS accurancy to the state_topic
             client.publish(mqtt_state, state)
             # Publish the JSON message to the MQTT broker
@@ -96,6 +111,19 @@ with GPSDClient(host="127.0.0.1") as gps_client:
             if debug:
                 # Print the published message for verification
                 print(f"Published: {result} to topic: {mqtt_attr}")
-    
+
+        # Check if a summary should be printed
+        if not debug and (datetime.now() - last_summary_time).total_seconds() >= summary_interval:
+            # Calculate the time elapsed since the last summary
+            time_elapsed = (datetime.now() - last_summary_time).total_seconds() // 60
+
+            # Print the summary message
+            summary_message = f"Published {published_updates} updates in the last {time_elapsed} minutes"
+            print(summary_message)
+
+            # Reset the counters
+            published_updates = 0
+            last_summary_time = datetime.now()
+
 # Start the MQTT network loop (keeps the client connected)
 client.loop_forever()
