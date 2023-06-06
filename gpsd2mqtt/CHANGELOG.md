@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.107a] - 2023-06-01
+
+### Changed
+
+- Breaking change in attributes, renamed lat to latitude, lon to longitude and alt to altitude. This change done to get location to work in Home Assistant for the device_tracker. 
+- Changes done to logging. If debug is off then the script will publish a log every X seonds (120s this release) to not clutter the logs more than necessary.
+
 ## [0.0.106] - 2023-06-01
 
 ### Added
