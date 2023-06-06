@@ -1,0 +1,6 @@
+{"class":"SKY","device":"/dev/ttyAMA0","gdop":1.77,"hdop":0.98,"pdop":1.39,"tdop":0.77,"xdop":0.59,"ydop":0.62,"vdop":0.88,"uSat":8}
+{"class":"SKY","device":"/dev/ttyAMA0","gdop":1.77,"hdop":0.98,"pdop":1.31,"tdop":0.77,"xdop":0.59,"ydop":0.62,"vdop":0.88,"uSat":8}
+{"class":"TPV","device":"/dev/ttyAMA0","mode":3,"time":"2023-05-24T10:50:22.000Z","ept":0.005,"lat":59.835811667,"lon":10.476650000,"altHAE":38.2000,"altMSL":-2.7000,"alt":-2.7000,"epx":8.799,"epy":9.333,"epv":20.240,"track":261.6600,"magtrack":265.1101,"magvar":3.5,"speed":0.252,"climb":0.000,"eps":18.67,"epc":40.48,"geoidSep":40.900,"eph":18.620,"sep":26.410}
+{"class":"SKY","device":"/dev/ttyAMA0","gdop":1.77,"hdop":0.98,"pdop":1.31,"tdop":0.77,"xdop":0.59,"ydop":0.62,"vdop":0.88,"uSat":8}
+{"class":"SKY","device":"/dev/ttyAMA0","gdop":1.77,"hdop":0.98,"pdop":1.31,"tdop":0.77,"xdop":0.59,"ydop":0.62,"vdop":0.88,"uSat":8}
+{"class":"TPV","device":"/dev/ttyAMA0","mode":3,"time":"2023-05-24T10:50:23.000Z","ept":0.005,"lat":59.835811667,"lon":10.476646667,"altHAE":38.2000,"altMSL":-2.7000,"alt":-2.7000,"epx":8.799,"epy":9.333,"epv":20.240,"track":227.6200,"magtrack":231.0701,"magvar":3.5,"speed":0.283,"climb":0.000,"eps":18.67,"epc":40.48,"geoidSep":40.900,"eph":18.620,"sep":24.890}
