@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.108] - 2023-06-07
+
+### Changed
+
+- Changes to check if lat/lon/lat is sent before rewriting attribute names
+- Some changes to logging, still not perfect, needs more work
+
 ## [0.0.107] - 2023-06-06
 
 ### Changed
