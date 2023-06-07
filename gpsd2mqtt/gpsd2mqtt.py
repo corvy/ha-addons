@@ -81,39 +81,43 @@ json_config = '''{{
 
 client.publish(mqtt_config, json_config)
 
-# Start the MQTT network loop (keeps the client connected)
-client.loop_start()
+# Stop the MQTT network loop
+client.disconnect()
 
-with GPSDClient(host="127.0.0.1") as gps_client:
-    for raw_result in gps_client.json_stream():
-        result = json.loads(raw_result)
-        if result.get("class") == "TPV":
-            mode = result.get("mode")
-            if mode == 1:
-                state = "No fix"
-            elif mode == 2:
-                state = "2D fix"
-            elif mode == 3:
-                state = "3D fix"
-            else:
-                state = "Unknown"
+# Main program loop
+while True:
+    client.loop(timeout=1) # Process MQTT messages with a 1-second timeout
 
-            # Modify the attribute names so Home Assistant gets position in the device_tracker 
-            # (it expects longitute/latitude/altitude)
-            if "alt" in result and result["alt"] is not None:
-                result["altitude"] = result.pop("alt")
-            if "lon" in result and result["lon"] is not None:
-                result["longitude"] = result.pop("lon")
-            if "lat" in result and result["lat"] is not None:
-                result["latitude"] = result.pop("lat")
+    with GPSDClient(host="127.0.0.1") as gps_client:
+        for raw_result in gps_client.json_stream():
+            result = json.loads(raw_result)
+            if result.get("class") == "TPV":
+                mode = result.get("mode")
+                if mode == 1:
+                    state = "No fix"
+                elif mode == 2:
+                    state = "2D fix"
+                elif mode == 3:
+                    state = "3D fix"
+                else:
+                    state = "Unknown"
 
-            # Publish the GPS accurancy to the state_topic
-            client.publish(mqtt_state, state)
-            # Publish the JSON message to the MQTT broker
-            client.publish(mqtt_attr, json.dumps(result))
-            if debug:
-                # Print the published message for verification
-                print(f"Published: {result} to topic: {mqtt_attr}")
+                # Modify the attribute names so Home Assistant gets position in the device_tracker 
+                # (it expects longitute/latitude/altitude)
+                if "alt" in result and result["alt"] is not None:
+                    result["altitude"] = result.pop("alt")
+                if "lon" in result and result["lon"] is not None:
+                    result["longitude"] = result.pop("lon")
+                if "lat" in result and result["lat"] is not None:
+                    result["latitude"] = result.pop("lat")
+
+                # Publish the GPS accurancy to the state_topic
+                client.publish(mqtt_state, state)
+                # Publish the JSON message to the MQTT broker
+                client.publish(mqtt_attr, json.dumps(result))
+                if debug:
+                    # Print the published message for verification
+                    print(f"Published: {result} to topic: {mqtt_attr}")
 
             # Check if a summary should be printed
             if not debug and (datetime.datetime.now() - last_summary_time).total_seconds() >= summary_interval:
@@ -127,6 +131,3 @@ with GPSDClient(host="127.0.0.1") as gps_client:
                 # Reset the counters
                 published_updates = 0
                 last_summary_time = datetime.datetime.now()
-
-# Stop the MQTT network loop
-client.loop_stop()
