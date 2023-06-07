@@ -112,18 +112,18 @@ with GPSDClient(host="127.0.0.1") as gps_client:
                 # Print the published message for verification
                 print(f"Published: {result} to topic: {mqtt_attr}")
 
-        # Check if a summary should be printed
-        if not debug and (datetime.now() - last_summary_time).total_seconds() >= summary_interval:
-            # Calculate the time elapsed since the last summary
-            time_elapsed = (datetime.now() - last_summary_time).total_seconds() // 60
+    # Check if a summary should be printed
+    if not debug and (datetime.now() - last_summary_time).total_seconds() >= summary_interval:
+        # Calculate the time elapsed since the last summary
+        time_elapsed = (datetime.now() - last_summary_time).total_seconds() // 60
 
-            # Print the summary message
-            summary_message = f"Published {published_updates} updates in the last {time_elapsed} minutes"
-            print(summary_message)
+        # Print the summary message
+        summary_message = f"Published {published_updates} updates in the last {time_elapsed} minutes"
+        print(summary_message)
 
-            # Reset the counters
-            published_updates = 0
-            last_summary_time = datetime.now()
+        # Reset the counters
+        published_updates = 0
+        last_summary_time = datetime.now()
 
 # Start the MQTT network loop (keeps the client connected)
 client.loop_forever()
