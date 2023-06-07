@@ -80,7 +80,7 @@ json_config = '''{{
 
 client.publish(mqtt_config, json_config)
 
-# Start the network loop to handle incoming and outgoing messages
+# Start the MQTT network loop (keeps the client connected)
 client.loop_start()
 
 with GPSDClient(host="127.0.0.1") as gps_client:
@@ -127,5 +127,5 @@ with GPSDClient(host="127.0.0.1") as gps_client:
                 published_updates = 0
                 last_summary_time = datetime.datetime.now()
 
-# Start the MQTT network loop (keeps the client connected)
-client.loop_forever()
+# Stop the MQTT network loop
+client.loop_stop()
