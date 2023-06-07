@@ -81,9 +81,6 @@ json_config = '''{{
 
 client.publish(mqtt_config, json_config)
 
-# Stop the MQTT network loop
-client.disconnect()
-
 # Main program loop
 while True:
     client.loop(timeout=1) # Process MQTT messages with a 1-second timeout
@@ -131,3 +128,6 @@ while True:
                 # Reset the counters
                 published_updates = 0
                 last_summary_time = datetime.datetime.now()
+
+# Stop the MQTT network loop
+client.disconnect()
