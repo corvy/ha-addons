@@ -123,7 +123,7 @@ with GPSDClient(host="127.0.0.1") as gps_client:
 
                 # Reset the counters
                 published_updates = 0
-                last_summary_time = datetime.now()
+                last_summary_time = datetime.datetime.now()
 
 # Start the MQTT network loop (keeps the client connected)
 client.loop_forever()
