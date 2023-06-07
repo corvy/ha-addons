@@ -22,7 +22,7 @@ debug = data.get("debug")
 # Variables used to publish updates to the
 summary_interval = 120 # Interval in seconds
 published_updates = 0
-last_summary_time = datetime.now()
+last_summary_time = datetime.datetime.now()
 
 # Print the variables in use
 if debug:
