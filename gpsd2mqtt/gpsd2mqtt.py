@@ -113,9 +113,9 @@ with GPSDClient(host="127.0.0.1") as gps_client:
                 print(f"Published: {result} to topic: {mqtt_attr}")
 
             # Check if a summary should be printed
-            if not debug and (datetime.now() - last_summary_time).total_seconds() >= summary_interval:
+            if not debug and (datetime.datetime.now() - last_summary_time).total_seconds() >= summary_interval:
                 # Calculate the time elapsed since the last summary
-                time_elapsed = (datetime.now() - last_summary_time).total_seconds() // 60
+                time_elapsed = (datetime.datetime.now() - last_summary_time).total_seconds() // 60
 
                 # Print the summary message
                 summary_message = f"Published {published_updates} updates in the last {time_elapsed} minutes"
