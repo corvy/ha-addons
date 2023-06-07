@@ -46,8 +46,7 @@ def on_disconnect(client, userdata, rc):
     print("Disconnected from MQTT broker")
 
 def on_log(client, userdata, level, buf):
-    if debug:
-        print(buf)
+    print(buf)
 
 def on_message(client, userdata, msg):
     if debug:

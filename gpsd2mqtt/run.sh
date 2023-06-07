@@ -41,6 +41,7 @@ STOPBIT="-cstopb"
 #  -V, --version             = emit version and exit.
 
 echo "Starting GPSD with device \"${DEVICE}\"..."
+/usr/sbin/gpsd --version
 /usr/sbin/gpsd ${GPSD_OPTIONS} ${GPSD_SOCKET} ${DEVICE}
 
 # Start python script to publish results from GPSD to MQTT
