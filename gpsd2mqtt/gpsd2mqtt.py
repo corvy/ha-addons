@@ -100,9 +100,12 @@ with GPSDClient(host="127.0.0.1") as gps_client:
 
             # Modify the attribute names so Home Assistant gets position in the device_tracker 
             # (it expects longitute/latitude/altitude)
-            result["altitude"] = result.pop("alt")
-            result["longitude"] = result.pop("lon")
-            result["latitude"] = result.pop("lat")
+            if result.pop("alt"):
+                result["altitude"] = result.pop("alt")
+            if result.pop("lon"):
+                result["longitude"] = result.pop("lon")
+            if result.pop("lat"):
+                result["latitude"] = result.pop("lat")
 
             # Publish the GPS accurancy to the state_topic
             client.publish(mqtt_state, state)
