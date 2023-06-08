@@ -29,38 +29,31 @@ last_summary_time = datetime.datetime.now()
 logging.basicConfig(level=logging.DEBUG if debug else logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Example usage of logging
-logger.debug("This is a debug message")
-logger.info("This is an info message")
-
 # Print the variables in use
-if debug:
-    print('These are the options in use.')
-    print('Serial device: ' + device)
-    print('Device Baudrate: ' + str(baudrate))
-    print('MQTT Hostname: ' + mqtt_broker)
-    print('MQTT TCP Port: ' + str(mqtt_port))
-    print('MQTT Username: ' + mqtt_username)
-    print('MQTT Password: ' + mqtt_pw)
-    print('Debug enabled: ' + str(debug))
+logger.debug('These are the options in use.')
+logger.debug('Serial device: ' + device)
+logger.debug('Device Baudrate: ' + str(baudrate))
+logger.debug('MQTT Hostname: ' + mqtt_broker)
+logger.debug('MQTT TCP Port: ' + str(mqtt_port))
+logger.debug('MQTT Username: ' + mqtt_username)
+logger.debug('MQTT Password: ' + mqtt_pw)
+logger.debug('Debug enabled: ' + str(debug))
 
 # Next, define the necessary callback functions for the MQTT client
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
-        print("Connected to MQTT broker")
+        logger.info("Connected to MQTT broker")
     else:
-        print("Failed to connect, return code: " + str(rc))
+        logger.error("Failed to connect, return code: " + str(rc))
 
 def on_disconnect(client, userdata, rc):
-    print("Disconnected from MQTT broker")
+    logger.info("Disconnected from MQTT broker")
 
 def on_log(client, userdata, level, buf):
-    if debug:
-        print(buf)
+    logger.debug(buf)
 
 def on_message(client, userdata, msg):
-    if debug:
-        print("Received message: " + msg.topic + " " + str(msg.payload))
+    logger.debug("Received message: " + msg.topic + " " + str(msg.payload))
     
     # Update the published_updates count when a message is received
     global published_updates
@@ -89,6 +82,7 @@ json_config = '''{{
 }}'''.format(mqtt_state=mqtt_state, mqtt_attr=mqtt_attr)
 
 client.publish(mqtt_config, json_config)
+logger.info(f"Published: {result} to topic: {mqtt_attr}")
 
 # Main program loop
 while True:
@@ -121,18 +115,16 @@ while True:
                 client.publish(mqtt_state, state)
                 # Publish the JSON message to the MQTT broker
                 client.publish(mqtt_attr, json.dumps(result))
-                if debug:
-                    # Print the published message for verification
-                    print(f"Published: {result} to topic: {mqtt_attr}")
+                logger.debug(f"Published: {result} to topic: {mqtt_attr}")
 
             # Check if a summary should be printed
-            if not debug and (datetime.datetime.now() - last_summary_time).total_seconds() >= summary_interval:
+            if (datetime.datetime.now() - last_summary_time).total_seconds() >= summary_interval:
                 # Calculate the time elapsed since the last summary
                 time_elapsed = (datetime.datetime.now() - last_summary_time).total_seconds() // 60
 
                 # Print the summary message
                 summary_message = f"Published {published_updates} updates in the last {time_elapsed} minutes"
-                print(summary_message)
+                logger.info(summary_message)
 
                 # Reset the counters
                 published_updates = 0
