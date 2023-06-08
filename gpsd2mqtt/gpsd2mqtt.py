@@ -27,6 +27,7 @@ last_summary_time = datetime.datetime.now()
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG if debug else logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Example usage of logging
 logger.debug("This is a debug message")
