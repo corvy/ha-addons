@@ -24,7 +24,7 @@ debug = data.get("debug", False)
 summary_interval = 120 # Interval in seconds
 published_updates = 0
 last_summary_time = datetime.datetime.now()
-result = ""
+result = None
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG if debug else logging.INFO)
