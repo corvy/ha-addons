@@ -95,13 +95,15 @@ while True:
             if result.get("class") == "TPV":
                 mode = result.get("mode")
                 if mode == 1:
-                    state = "No fix"
+                    accuracy = "No fix"
                 elif mode == 2:
-                    state = "2D fix"
+                    accuracy = "2D fix"
                 elif mode == 3:
-                    state = "3D fix"
+                    accuracy = "3D fix"
                 else:
-                    state = "Unknown"
+                    accuracy = "Unknown"
+                
+                result["accuracy"] = accuracy
 
                 # Modify the attribute names so Home Assistant gets position in the device_tracker 
                 # (it expects longitute/latitude/altitude)
@@ -112,8 +114,9 @@ while True:
                 if "lat" in result and result["lat"] is not None:
                     result["latitude"] = result.pop("lat")
 
-                # Publish the GPS accurancy to the state_topic
-                client.publish(mqtt_state, state)
+                ## Publish the GPS accurancy to the state_topic
+                # client.publish(mqtt_state, accuracy)
+                
                 # Publish the JSON message to the MQTT broker
                 client.publish(mqtt_attr, json.dumps(result))
                 logger.debug(f"Published: {result} to topic: {mqtt_attr}")
