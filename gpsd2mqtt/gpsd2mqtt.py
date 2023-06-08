@@ -1,5 +1,6 @@
 import json
 import datetime
+import logging
 import paho.mqtt.client as mqtt
 from gpsdclient import GPSDClient
 
@@ -18,11 +19,18 @@ mqtt_pw = data.get("mqtt_pw") or ""
 mqtt_config = data.get("mqtt_config", "homeassistant/device_tracker/gpsd/config")
 mqtt_state = data.get("mqtt_state", "gpsd/state")
 mqtt_attr = data.get("mqtt_attr", "gpsd/attribute")
-debug = data.get("debug")
+debug = data.get("debug", False)
 # Variables used to publish updates to the
 summary_interval = 120 # Interval in seconds
 published_updates = 0
 last_summary_time = datetime.datetime.now()
+
+# Set up logging
+logging.basicConfig(level=logging.DEBUG if debug else logging.INFO)
+
+# Example usage of logging
+logger.debug("This is a debug message")
+logger.info("This is an info message")
 
 # Print the variables in use
 if debug:
