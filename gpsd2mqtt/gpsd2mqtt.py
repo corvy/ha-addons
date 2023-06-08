@@ -84,6 +84,7 @@ json_config = '''{{
 
 client.publish(mqtt_config, json_config)
 logger.info(f"Published: {result} to topic: {mqtt_attr}")
+client.publish(mqtt_state, "not"
 
 # Main program loop
 while True:
