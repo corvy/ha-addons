@@ -25,6 +25,7 @@ summary_interval = data.get("summary_interval") or 120 # Interval in seconds
 publish_interval = data.get("publish_interval") or 10
 published_updates = 0
 last_summary_time = datetime.datetime.now()
+last_published_time = datetime.datetime.now()
 result = None
 
 # Set up logging
