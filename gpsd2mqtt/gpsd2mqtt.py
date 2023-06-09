@@ -80,11 +80,15 @@ json_config = '''{{
     "unique_id": "gpsd_mqtt",
     "name": "GPS Location",
     "platform": "mqtt",
+    "payload_home": "home",
+    "payload_not_home": "not_home",
+    "payload_reset": "check_zone",
     "json_attributes_topic": "{mqtt_attr}"
 }}'''.format(mqtt_state=mqtt_state, mqtt_attr=mqtt_attr)
 
 client.publish(mqtt_config, json_config)
 logger.info(f"Published MQTT discovery message to topic: {mqtt_attr}")
+logger.debug(f"Published {json_config} discovery message to topic: {mqtt_attr}")
 #client.publish(mqtt_state, "not_home") # Reset state to not_home on startup
 
 # Main program loop
