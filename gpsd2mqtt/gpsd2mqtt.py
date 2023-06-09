@@ -84,7 +84,7 @@ logger.info(f"Published MQTT discovery message to topic: {mqtt_attr}")
 
 # Main program loop
 while True:
-    client.loop(timeout=1) # Process MQTT messages with a 1-second timeout
+    client.loop(timeout=20) # Process MQTT messages with a 1-second timeout
 
     with GPSDClient(host="127.0.0.1") as gps_client:
         for raw_result in gps_client.json_stream():
