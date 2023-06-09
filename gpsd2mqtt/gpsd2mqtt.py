@@ -40,7 +40,10 @@ logger.debug('MQTT Hostname: ' + mqtt_broker)
 logger.debug('MQTT TCP Port: ' + str(mqtt_port))
 logger.debug('MQTT Username: ' + mqtt_username)
 logger.debug('MQTT Password: ' + mqtt_pw)
+logger.debug('Publish interval:' + publish_interval)
+logger.debug('Summary interval:' + summary_interval)
 logger.debug('Debug enabled: ' + str(debug))
+
 
 # Next, define the necessary callback functions for the MQTT client
 def on_connect(client, userdata, flags, rc):
@@ -116,11 +119,11 @@ while True:
                 ## Publish the GPS accurancy to the state_topic
                 # client.publish(mqtt_state, accuracy)
                 
-                # Publish the JSON message to the MQTT broker
-                if (datetime.datetime.now() - last_published_time).total_seconds() >= publish_interval:
-                    client.publish(mqtt_attr, json.dumps(result))
-                    published_updates += 1 # Add one per publish for the summary log 
-                    logger.debug(f"Published: {result} to topic: {mqtt_attr}")
+            # Publish the JSON message to the MQTT broker
+            if (datetime.datetime.now() - last_published_time).total_seconds() >= publish_interval:
+                client.publish(mqtt_attr, json.dumps(result))
+                published_updates += 1 # Add one per publish for the summary log 
+                logger.debug(f"Published: {result} to topic: {mqtt_attr}")
 
             # Check if a summary should be printed
             if (datetime.datetime.now() - last_summary_time).total_seconds() >= summary_interval:
