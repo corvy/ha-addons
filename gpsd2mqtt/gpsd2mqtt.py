@@ -1,5 +1,6 @@
 import json
 import datetime
+import logging
 import paho.mqtt.client as mqtt
 from gpsdclient import GPSDClient
 
@@ -18,44 +19,47 @@ mqtt_pw = data.get("mqtt_pw") or ""
 mqtt_config = data.get("mqtt_config", "homeassistant/device_tracker/gpsd/config")
 mqtt_state = data.get("mqtt_state", "gpsd/state")
 mqtt_attr = data.get("mqtt_attr", "gpsd/attribute")
-debug = data.get("debug")
+debug = data.get("debug", False)
 # Variables used to publish updates to the
-summary_interval = 120 # Interval in seconds
+summary_interval = data.get("summary_interval") or 120 # Interval in seconds
+publish_interval = data.get("publish_interval") or 10
 published_updates = 0
 last_summary_time = datetime.datetime.now()
+last_published_time = datetime.datetime.now()
+result = None
+
+# Set up logging
+logging.basicConfig(level=logging.DEBUG if debug else logging.INFO)
+logger = logging.getLogger("MQTT Publisher")
 
 # Print the variables in use
-if debug:
-    print('These are the options in use.')
-    print('Serial device: ' + device)
-    print('Device Baudrate: ' + str(baudrate))
-    print('MQTT Hostname: ' + mqtt_broker)
-    print('MQTT TCP Port: ' + str(mqtt_port))
-    print('MQTT Username: ' + mqtt_username)
-    print('MQTT Password: ' + mqtt_pw)
-    print('Debug enabled: ' + str(debug))
+logger.debug('These are the options in use.')
+logger.debug('Serial device: ' + device)
+logger.debug('Device Baudrate: ' + str(baudrate))
+logger.debug('MQTT Hostname: ' + mqtt_broker)
+logger.debug('MQTT TCP Port: ' + str(mqtt_port))
+logger.debug('MQTT Username: ' + mqtt_username)
+logger.debug('MQTT Password: ' + mqtt_pw)
+logger.debug('Publish interval:' + str(publish_interval))
+logger.debug('Summary interval:' + str(summary_interval))
+logger.debug('Debug enabled: ' + str(debug))
+
 
 # Next, define the necessary callback functions for the MQTT client
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
-        print("Connected to MQTT broker")
+        logger.info("Connected to MQTT broker")
     else:
-        print("Failed to connect, return code: " + str(rc))
+        logger.error("Failed to connect, return code: " + str(rc))
 
 def on_disconnect(client, userdata, rc):
-    print("Disconnected from MQTT broker")
+    logger.info("Disconnected from MQTT broker")
 
 def on_log(client, userdata, level, buf):
-    if debug:
-        print(buf)
+    logger.debug(buf)
 
 def on_message(client, userdata, msg):
-    if debug:
-        print("Received message: " + msg.topic + " " + str(msg.payload))
-    
-    # Update the published_updates count when a message is received
-    global published_updates
-    published_updates += 1
+    logger.debug("Received message: " + msg.topic + " " + str(msg.payload))
 
 # Now, create an instance of the MQTT client and set up the appropriate callbacks:
 client = mqtt.Client()
@@ -76,10 +80,16 @@ json_config = '''{{
     "unique_id": "gpsd_mqtt",
     "name": "GPS Location",
     "platform": "mqtt",
+    "payload_home": "home",
+    "payload_not_home": "not_home",
+    "payload_reset": "check_zone",
     "json_attributes_topic": "{mqtt_attr}"
 }}'''.format(mqtt_state=mqtt_state, mqtt_attr=mqtt_attr)
 
 client.publish(mqtt_config, json_config)
+logger.info(f"Published MQTT discovery message to topic: {mqtt_attr}")
+logger.debug(f"Published {json_config} discovery message to topic: {mqtt_attr}")
+#client.publish(mqtt_state, "not_home") # Reset state to not_home on startup
 
 # Main program loop
 while True:
@@ -91,13 +101,15 @@ while True:
             if result.get("class") == "TPV":
                 mode = result.get("mode")
                 if mode == 1:
-                    state = "No fix"
+                    accuracy = "No fix"
                 elif mode == 2:
-                    state = "2D fix"
+                    accuracy = "2D fix"
                 elif mode == 3:
-                    state = "3D fix"
+                    accuracy = "3D fix"
                 else:
-                    state = "Unknown"
+                    accuracy = "Unknown"
+                
+                result["accuracy"] = accuracy
 
                 # Modify the attribute names so Home Assistant gets position in the device_tracker 
                 # (it expects longitute/latitude/altitude)
@@ -108,22 +120,24 @@ while True:
                 if "lat" in result and result["lat"] is not None:
                     result["latitude"] = result.pop("lat")
 
-                # Publish the GPS accurancy to the state_topic
-                client.publish(mqtt_state, state)
+                ## Publish the GPS accurancy to the state_topic
+                # client.publish(mqtt_state, accuracy)
+                
                 # Publish the JSON message to the MQTT broker
-                client.publish(mqtt_attr, json.dumps(result))
-                if debug:
-                    # Print the published message for verification
-                    print(f"Published: {result} to topic: {mqtt_attr}")
+                if (datetime.datetime.now() - last_published_time).total_seconds() >= publish_interval:
+                    client.publish(mqtt_attr, json.dumps(result))
+                    published_updates += 1 # Add one per publish for the summary log 
+                    logger.debug(f"Published: {result} to topic: {mqtt_attr}")
+                    last_published_time = datetime.datetime.now()
 
             # Check if a summary should be printed
-            if not debug and (datetime.datetime.now() - last_summary_time).total_seconds() >= summary_interval:
+            if (datetime.datetime.now() - last_summary_time).total_seconds() >= summary_interval:
                 # Calculate the time elapsed since the last summary
                 time_elapsed = (datetime.datetime.now() - last_summary_time).total_seconds() // 60
 
                 # Print the summary message
                 summary_message = f"Published {published_updates} updates in the last {time_elapsed} minutes"
-                print(summary_message)
+                logger.info(summary_message)
 
                 # Reset the counters
                 published_updates = 0
