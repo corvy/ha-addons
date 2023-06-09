@@ -21,7 +21,8 @@ mqtt_state = data.get("mqtt_state", "gpsd/state")
 mqtt_attr = data.get("mqtt_attr", "gpsd/attribute")
 debug = data.get("debug", False)
 # Variables used to publish updates to the
-summary_interval = 120 # Interval in seconds
+summary_interval = data.get("summary_interval") or 120 # Interval in seconds
+publish_interval = data.get("publish_interval") or 10
 published_updates = 0
 last_summary_time = datetime.datetime.now()
 result = None
@@ -84,7 +85,7 @@ logger.info(f"Published MQTT discovery message to topic: {mqtt_attr}")
 
 # Main program loop
 while True:
-    client.loop(timeout=20) # Process MQTT messages with a 1-second timeout
+    client.loop(timeout=1) # Process MQTT messages with a 1-second timeout
 
     with GPSDClient(host="127.0.0.1") as gps_client:
         for raw_result in gps_client.json_stream():
@@ -115,9 +116,10 @@ while True:
                 # client.publish(mqtt_state, accuracy)
                 
                 # Publish the JSON message to the MQTT broker
-                client.publish(mqtt_attr, json.dumps(result))
-                published_updates += 1 # Add one per publish for the summary log 
-                logger.debug(f"Published: {result} to topic: {mqtt_attr}")
+                if (datetime.datetime.now() - last_published_time).total_seconds() >= publish_interval:
+                    client.publish(mqtt_attr, json.dumps(result))
+                    published_updates += 1 # Add one per publish for the summary log 
+                    logger.debug(f"Published: {result} to topic: {mqtt_attr}")
 
             # Check if a summary should be printed
             if (datetime.datetime.now() - last_summary_time).total_seconds() >= summary_interval:
