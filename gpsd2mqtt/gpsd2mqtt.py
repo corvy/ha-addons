@@ -40,8 +40,8 @@ logger.debug('MQTT Hostname: ' + mqtt_broker)
 logger.debug('MQTT TCP Port: ' + str(mqtt_port))
 logger.debug('MQTT Username: ' + mqtt_username)
 logger.debug('MQTT Password: ' + mqtt_pw)
-logger.debug('Publish interval:' + publish_interval)
-logger.debug('Summary interval:' + summary_interval)
+logger.debug('Publish interval:' + str(publish_interval))
+logger.debug('Summary interval:' + str(summary_interval))
 logger.debug('Debug enabled: ' + str(debug))
 
 
