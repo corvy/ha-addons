@@ -101,7 +101,7 @@ while True:
                     accuracy = "Unknown"
                 
                 result["gps_accuracy"] = accuracy
-                client.publish(mqtt_state, "not_home")
+                client.publish(mqtt_state, accuracy)
 
                 # Modify the attribute names so Home Assistant gets position in the device_tracker 
                 # (it expects longitute/latitude/altitude)
