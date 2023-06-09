@@ -55,7 +55,7 @@ def on_log(client, userdata, level, buf):
 
 def on_message(client, userdata, msg):
     logger.debug("Received message: " + msg.topic + " " + str(msg.payload))
-    
+    published_updates += 1 # Add one per publish for the summary log 
 
 # Now, create an instance of the MQTT client and set up the appropriate callbacks:
 client = mqtt.Client()
@@ -118,7 +118,6 @@ while True:
                 # Publish the JSON message to the MQTT broker
                 client.publish(mqtt_attr, json.dumps(result))
                 logger.debug(f"Published: {result} to topic: {mqtt_attr}")
-                published_updates += 1 # Add one per publish for the summary log
 
             # Check if a summary should be printed
             if (datetime.datetime.now() - last_summary_time).total_seconds() >= summary_interval:
