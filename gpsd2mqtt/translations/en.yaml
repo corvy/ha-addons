@@ -15,6 +15,9 @@ configuration:
   mqtt_pw:
     name: MQTT Password
     description: If not configured it will default to use internal addon auth for Mosquitto add-on.
+  mqtt_state:
+    name: MQTT State Topic
+    description: If you want to change the MQTT topic used for device state that can be changed here. Defaults to gpsd/state if not changed. 
   debug:
     name: Debug
     description: Enable debugging to get more info in the logs in case of problems.
