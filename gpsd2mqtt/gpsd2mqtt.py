@@ -79,8 +79,8 @@ json_config = '''{{
 }}'''.format(mqtt_state=mqtt_state, mqtt_attr=mqtt_attr)
 
 client.publish(mqtt_config, json_config)
-logger.info(f"Published: MQTT discovery message to topic: {mqtt_attr}")
-# client.publish(mqtt_state, "not_home")
+logger.info(f"Published MQTT discovery message to topic: {mqtt_attr}")
+client.publish(mqtt_state, "not_home")
 
 # Main program loop
 while True:
@@ -100,8 +100,7 @@ while True:
                 else:
                     accuracy = "Unknown"
                 
-                result["gps_accuracy"] = accuracy
-                client.publish(mqtt_state, accuracy)
+                result["accuracy"] = accuracy
 
                 # Modify the attribute names so Home Assistant gets position in the device_tracker 
                 # (it expects longitute/latitude/altitude)
