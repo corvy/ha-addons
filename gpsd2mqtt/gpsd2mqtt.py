@@ -119,12 +119,12 @@ while True:
                 ## Publish the GPS accurancy to the state_topic
                 # client.publish(mqtt_state, accuracy)
                 
-                # Publish the JSON message to the MQTT broker
-                if (datetime.datetime.now() - last_published_time).total_seconds() >= publish_interval:
-                    client.publish(mqtt_attr, json.dumps(result))
-                    published_updates += 1 # Add one per publish for the summary log 
-                    logger.debug(f"Published: {result} to topic: {mqtt_attr}")
-                    last_published_time = current_time
+            # Publish the JSON message to the MQTT broker
+            if (datetime.datetime.now() - last_published_time).total_seconds() >= publish_interval:
+                client.publish(mqtt_attr, json.dumps(result))
+                published_updates += 1 # Add one per publish for the summary log 
+                logger.debug(f"Published: {result} to topic: {mqtt_attr}")
+                last_published_time = current_time
 
             # Check if a summary should be printed
             if (datetime.datetime.now() - last_summary_time).total_seconds() >= summary_interval:
