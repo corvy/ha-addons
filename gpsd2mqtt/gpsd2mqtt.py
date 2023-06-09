@@ -122,18 +122,18 @@ while True:
                 client.publish(mqtt_attr, json.dumps(result))
                 logger.debug(f"Published: {result} to topic: {mqtt_attr}")
 
-            # Check if a summary should be printed
-            if (datetime.datetime.now() - last_summary_time).total_seconds() >= summary_interval:
-                # Calculate the time elapsed since the last summary
-                time_elapsed = (datetime.datetime.now() - last_summary_time).total_seconds() // 60
+        # Check if a summary should be printed
+        if (datetime.datetime.now() - last_summary_time).total_seconds() >= summary_interval:
+            # Calculate the time elapsed since the last summary
+            time_elapsed = (datetime.datetime.now() - last_summary_time).total_seconds() // 60
 
-                # Print the summary message
-                summary_message = f"Published {published_updates} updates in the last {time_elapsed} minutes"
-                logger.info(summary_message)
+            # Print the summary message
+            summary_message = f"Published {published_updates} updates in the last {time_elapsed} minutes"
+            logger.info(summary_message)
 
-                # Reset the counters
-                published_updates = 0
-                last_summary_time = datetime.datetime.now()
+            # Reset the counters
+            published_updates = 0
+            last_summary_time = datetime.datetime.now()
 
 # Stop the MQTT network loop
 client.disconnect()
