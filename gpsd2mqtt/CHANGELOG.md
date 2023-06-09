@@ -1,5 +1,15 @@
 # Changelog
 
+## [2023.6.1] - 2023-06-09
+
+### Changed
+
+- Changes done to state. It no longer posts the GPS accuracy as state, but should use the zone settings from Home Assistant (home, not_home)
+- Changes to logging, now debug and info should be more visible in the logs. 
+- Made a summary message in the log so you can get some information withouth overloading the log with info. 
+- Configurable options to control how often updates are published to MQTT and also how often to get the summary in the log. Se options under optional config options (Publish Interval and Print Summary).
+- Changed the versioning numbering to align with Home Assistant versioning.  
+
 ## [0.0.107] - 2023-06-06
 
 ### Changed
