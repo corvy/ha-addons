@@ -121,6 +121,7 @@ while True:
                 # Publish the JSON message to the MQTT broker
                 client.publish(mqtt_attr, json.dumps(result))
                 logger.debug(f"Published: {result} to topic: {mqtt_attr}")
+                published_updates += 1 # Add one per publish for the summary log
 
             # Check if a summary should be printed
             if (datetime.datetime.now() - last_summary_time).total_seconds() >= summary_interval:
