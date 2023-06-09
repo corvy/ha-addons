@@ -55,7 +55,6 @@ def on_log(client, userdata, level, buf):
 
 def on_message(client, userdata, msg):
     logger.debug("Received message: " + msg.topic + " " + str(msg.payload))
-    published_updates += 1 # Add one per publish for the summary log 
 
 # Now, create an instance of the MQTT client and set up the appropriate callbacks:
 client = mqtt.Client()
@@ -80,8 +79,8 @@ json_config = '''{{
 }}'''.format(mqtt_state=mqtt_state, mqtt_attr=mqtt_attr)
 
 client.publish(mqtt_config, json_config)
-logger.info(f"Published: {json_config} to topic: {mqtt_attr}")
-client.publish(mqtt_state, "not_home")
+logger.info(f"Published: MQTT discovery message to topic: {mqtt_attr}")
+# client.publish(mqtt_state, "not_home")
 
 # Main program loop
 while True:
@@ -102,6 +101,7 @@ while True:
                     accuracy = "Unknown"
                 
                 result["gps_accuracy"] = accuracy
+                client.publish(mqtt_state, "not_home")
 
                 # Modify the attribute names so Home Assistant gets position in the device_tracker 
                 # (it expects longitute/latitude/altitude)
@@ -117,6 +117,7 @@ while True:
                 
                 # Publish the JSON message to the MQTT broker
                 client.publish(mqtt_attr, json.dumps(result))
+                published_updates += 1 # Add one per publish for the summary log 
                 logger.debug(f"Published: {result} to topic: {mqtt_attr}")
 
             # Check if a summary should be printed
