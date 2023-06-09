@@ -28,7 +28,7 @@ result = None
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG if debug else logging.INFO)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("MQTT Publisher")
 
 # Print the variables in use
 logger.debug('These are the options in use.')
@@ -56,9 +56,6 @@ def on_log(client, userdata, level, buf):
 def on_message(client, userdata, msg):
     logger.debug("Received message: " + msg.topic + " " + str(msg.payload))
     
-    # Update the published_updates count when a message is received
-    global published_updates
-    published_updates += 1
 
 # Now, create an instance of the MQTT client and set up the appropriate callbacks:
 client = mqtt.Client()
@@ -83,7 +80,7 @@ json_config = '''{{
 }}'''.format(mqtt_state=mqtt_state, mqtt_attr=mqtt_attr)
 
 client.publish(mqtt_config, json_config)
-logger.info(f"Published: {result} to topic: {mqtt_attr}")
+logger.info(f"Published: {json_config} to topic: {mqtt_attr}")
 client.publish(mqtt_state, "not_home")
 
 # Main program loop
