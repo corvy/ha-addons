@@ -124,7 +124,7 @@ while True:
                 client.publish(mqtt_attr, json.dumps(result))
                 published_updates += 1 # Add one per publish for the summary log 
                 logger.debug(f"Published: {result} to topic: {mqtt_attr}")
-                last_published_time = current_time
+                last_published_time = datetime.datetime.now()
 
             # Check if a summary should be printed
             if (datetime.datetime.now() - last_summary_time).total_seconds() >= summary_interval:
