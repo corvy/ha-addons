@@ -1,5 +1,11 @@
 # Changelog
 
+## [2023.6.2] - 2023-06-09
+
+- Merged upstream changes from Home Assitant builder
+
+### Changed
+
 ## [2023.6.1] - 2023-06-09
 
 ### Changed
