@@ -31,4 +31,4 @@ configuration:
     name: MQTT Publish Interval in seconds
     description: How frequent should MQTT publish updated data to MQTT. Defaults to 10 seconds.
 network:
-  2947/tcp: GPSD Port (default 2947)
+  2947/tcp: GPSD Port (default 2947). Disabled by default as it is not needed for MQTT, only if you want to use the GPSD integration, or another use-case where direct connection to GPSD is needed. 
