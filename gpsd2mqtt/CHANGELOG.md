@@ -2,10 +2,9 @@
 
 ## [2023.6.2] - 2023-06-09
 
+- BREAKING CHANGE!! Improved security of addon by disabling listening to GPSD port, that is not needed for MQTT. The port is an optional config option if anyone wants to use the addon to talk to GPSD directly
 - Improved security of addon by implementing CAS signing and apparmour
-- Improved security of addon by disabling listening to GPSD port, that is not needed for MQTT. The port is an optional config option if anyone wants to use the addon to talk to GPSD directly
 - Merged upstream changes from Home Assitant builder
-
 
 ### Changed
 
