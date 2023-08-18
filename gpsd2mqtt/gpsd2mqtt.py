@@ -1,6 +1,7 @@
 import json
 import datetime
 import logging
+import time
 import paho.mqtt.client as mqtt
 from gpsdclient import GPSDClient
 
@@ -28,8 +29,16 @@ last_summary_time = datetime.datetime.now()
 last_published_time = datetime.datetime.now()
 result = None
 
-# Set up logging
-logging.basicConfig(level=logging.DEBUG if debug else logging.INFO)
+# Define parameters for exponential backoff
+RECONNECT_DELAY_BASE = 5  # Initial delay in seconds
+MAX_RECONNECT_ATTEMPTS = 10  # Maximum number of reconnection attempts
+
+
+# Set up logging, adding timestamp to the logs
+logging.basicConfig(
+    level=logging.DEBUG if debug else logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',  # Adding %(asctime)s for timestamp
+)
 logger = logging.getLogger("MQTT Publisher")
 
 # Print the variables in use
@@ -53,7 +62,29 @@ def on_connect(client, userdata, flags, rc):
         logger.error("Failed to connect, return code: " + str(rc))
 
 def on_disconnect(client, userdata, rc):
-    logger.info("Disconnected from MQTT broker")
+    if rc != 0:
+        logger.warning("Disconnected from MQTT broker. Attempting reconnection...")
+        reconnect_to_mqtt()
+
+def reconnect_to_mqtt():
+    attempt = 1
+    while attempt <= MAX_RECONNECT_ATTEMPTS:
+        try:
+            logger.info("Trying to reconnect to MQTT broker (attempt {} of {})...".format(attempt, MAX_RECONNECT_ATTEMPTS))
+            client.reconnect()
+            break  # If reconnection successful, exit the loop
+        except Exception as e:
+            logger.error("Failed to reconnect to MQTT broker: " + str(e))
+        
+        # Calculate the delay using exponential backoff formula
+        reconnect_delay = RECONNECT_DELAY_BASE * (2 ** (attempt - 1))
+        logger.info("Waiting {} seconds before next reconnection attempt...".format(reconnect_delay))
+        time.sleep(reconnect_delay)
+        attempt += 1
+    
+    if attempt > MAX_RECONNECT_ATTEMPTS:
+        logger.error("Exceeded maximum reconnection attempts. Giving up.")
+
 
 def on_log(client, userdata, level, buf):
     logger.debug(buf)
@@ -93,6 +124,10 @@ logger.debug(f"Published {json_config} discovery message to topic: {mqtt_attr}")
 
 # Main program loop
 while True:
+    # Check connection and perform reconnection if needed
+    if not client.is_connected():
+        reconnect_to_mqtt()
+
     client.loop(timeout=1) # Process MQTT messages with a 1-second timeout
 
     with GPSDClient(host="127.0.0.1") as gps_client:
