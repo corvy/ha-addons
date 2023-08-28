@@ -1,10 +1,16 @@
 # Changelog
 
+## [2023.8.0] - 2023-08-28
+
+- Updated and improved logging with timestamps
+- Improved MQTT connection resilience, and introdused a reconnect feature
+- Merged upstream changes from Home Assistant builder
+
 ## [2023.6.2] - 2023-06-09
 
 - BREAKING CHANGE!! Improved security of addon by disabling listening to GPSD port, that is not needed for MQTT. The port is an optional config option if anyone wants to use the addon to talk to GPSD directly
 - Improved security of addon by implementing CAS signing and apparmour
-- Merged upstream changes from Home Assitant builder
+- Merged upstream changes from Home Assistant builder
 
 ### Changed
 
