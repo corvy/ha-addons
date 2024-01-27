@@ -135,52 +135,52 @@ while True:
         with GPSDClient(host="127.0.0.1") as gps_client:
             ser.flushInput()
             ser.flushOutput()
-        for raw_result in gps_client.json_stream():
-            result = json.loads(raw_result)
-            if result.get("class") == "TPV":
-                mode = result.get("mode")
-                if mode == 1:
-                    accuracy = "No fix"
-                elif mode == 2:
-                    accuracy = "2D fix"
-                elif mode == 3:
-                    accuracy = "3D fix"
-                else:
-                    accuracy = "Unknown"
-                
-                result["accuracy"] = accuracy
+            for raw_result in gps_client.json_stream():
+                result = json.loads(raw_result)
+                if result.get("class") == "TPV":
+                    mode = result.get("mode")
+                    if mode == 1:
+                        accuracy = "No fix"
+                    elif mode == 2:
+                        accuracy = "2D fix"
+                    elif mode == 3:
+                        accuracy = "3D fix"
+                    else:
+                        accuracy = "Unknown"
+                    
+                    result["accuracy"] = accuracy
 
-                # Modify the attribute names so Home Assistant gets position in the device_tracker 
-                # (it expects longitute/latitude/altitude)
-                if "alt" in result and result["alt"] is not None:
-                    result["altitude"] = result.pop("alt")
-                if "lon" in result and result["lon"] is not None:
-                    result["longitude"] = result.pop("lon")
-                if "lat" in result and result["lat"] is not None:
-                    result["latitude"] = result.pop("lat")
+                    # Modify the attribute names so Home Assistant gets position in the device_tracker 
+                    # (it expects longitute/latitude/altitude)
+                    if "alt" in result and result["alt"] is not None:
+                        result["altitude"] = result.pop("alt")
+                    if "lon" in result and result["lon"] is not None:
+                        result["longitude"] = result.pop("lon")
+                    if "lat" in result and result["lat"] is not None:
+                        result["latitude"] = result.pop("lat")
 
-                ## Publish the GPS accurancy to the state_topic
-                # client.publish(mqtt_state, accuracy)
-                
-                # Publish the JSON message to the MQTT broker
-                if (datetime.datetime.now() - last_published_time).total_seconds() >= publish_interval:
-                    client.publish(mqtt_attr, json.dumps(result))
-                    published_updates += 1 # Add one per publish for the summary log 
-                    logger.debug(f"Published: {result} to topic: {mqtt_attr}")
-                    last_published_time = datetime.datetime.now()
+                    ## Publish the GPS accurancy to the state_topic
+                    # client.publish(mqtt_state, accuracy)
+                    
+                    # Publish the JSON message to the MQTT broker
+                    if (datetime.datetime.now() - last_published_time).total_seconds() >= publish_interval:
+                        client.publish(mqtt_attr, json.dumps(result))
+                        published_updates += 1 # Add one per publish for the summary log 
+                        logger.debug(f"Published: {result} to topic: {mqtt_attr}")
+                        last_published_time = datetime.datetime.now()
 
-            # Check if a summary should be printed
-            if (datetime.datetime.now() - last_summary_time).total_seconds() >= summary_interval:
-                # Calculate the time elapsed since the last summary
-                time_elapsed = (datetime.datetime.now() - last_summary_time).total_seconds() // 60
+                # Check if a summary should be printed
+                if (datetime.datetime.now() - last_summary_time).total_seconds() >= summary_interval:
+                    # Calculate the time elapsed since the last summary
+                    time_elapsed = (datetime.datetime.now() - last_summary_time).total_seconds() // 60
 
-                # Print the summary message
-                summary_message = f"Published {published_updates} updates in the last {time_elapsed} minutes"
-                logger.info(summary_message)
+                    # Print the summary message
+                    summary_message = f"Published {published_updates} updates in the last {time_elapsed} minutes"
+                    logger.info(summary_message)
 
-                # Reset the counters
-                published_updates = 0
-                last_summary_time = datetime.datetime.now()
+                    # Reset the counters
+                    published_updates = 0
+                    last_summary_time = datetime.datetime.now()
 
 # Stop the MQTT network loop
 client.disconnect()
