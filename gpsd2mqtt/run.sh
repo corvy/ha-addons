@@ -17,6 +17,8 @@ STOPBIT="-cstopb"
 #   setting the baudrate with stty
 # Uncomment the following lines if using a serial device:
 #
+
+echo "Setting up serial device with the following: ${DEVICE} ${BAUDRATE} ${BITS} ${CONTROL} ${STOPBIT}"
 /bin/stty -F ${DEVICE} raw ${BAUDRATE} ${BITS} ${CONTROL} ${STOPBIT}
 /bin/setserial ${DEVICE} low_latency
 
