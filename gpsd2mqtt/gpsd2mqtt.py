@@ -106,6 +106,9 @@ client.on_message = on_message
 client.username_pw_set(mqtt_username, mqtt_pw)
 client.connect(mqtt_broker, mqtt_port)
 
+# Create a serial object and set the baudrate
+ser = serial.Serial(device, baudrate, timeout=1)
+
 # Create the device using the Home Assistant discovery protocol and set the state not_home
 json_config = '''{{
     "state_topic": "{mqtt_state}",
@@ -131,10 +134,12 @@ while True:
 
     client.loop(timeout=1) # Process MQTT messages with a 1-second timeout
 
-    with serial.Serial(device, baudrate, timeout=1) as ser:
-        with GPSDClient(host="127.0.0.1") as gps_client:
-            ser.flushInput()
-            ser.flushOutput()
+
+    with GPSDClient(host="127.0.0.1", serial_port=ser) as gps_client:
+        ser.flushInput()
+        ser.flushOutput()
+
+        while True:
             for raw_result in gps_client.json_stream():
                 result = json.loads(raw_result)
                 if result.get("class") == "TPV":
