@@ -134,8 +134,6 @@ while True:
 
 
     with GPSDClient(host="127.0.0.1") as gps_client:
-        ser.flushInput()
-        ser.flushOutput()
 
         for raw_result in gps_client.json_stream():
             result = json.loads(raw_result)
