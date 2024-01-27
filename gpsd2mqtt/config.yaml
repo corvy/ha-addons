@@ -9,6 +9,7 @@ version: "2024.1.0"
 slug: "gpsd2mqtt"
 codenotary: "stian@barmen.nu"
 apparmor: true
+apparmor: true
 init: false
 arch:
   - aarch64
