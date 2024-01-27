@@ -8,7 +8,7 @@ ARG TEMPIO_VERSION BUILD_ARCH
 #    "https://github.com/home-assistant/tempio/releases/download/${TEMPIO_VERSION}/tempio_${BUILD_ARCH}"
 
 RUN apk add --no-cache gpsd gpsd-clients bash py3-pip py3-paho-mqtt py3-pyserial
-RUN pip --break-system-packages install gpsdclient
+RUN pip install --break-system-packages gpsdclient
 # RUN pip install paho-mqtt gpsdclient
 
 # Copy data for add-on
