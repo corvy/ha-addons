@@ -1,5 +1,8 @@
 # Changelog
 
+## [2024.1.0] - 2024-01-27
+ - Improved serial device handling, including setting baudrate
+
 ## [2023.8.0] - 2023-08-28
 
 - Updated and improved logging with timestamps

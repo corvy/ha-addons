@@ -2,6 +2,7 @@ import json
 import datetime
 import logging
 import time
+import serial
 import paho.mqtt.client as mqtt
 from gpsdclient import GPSDClient
 
@@ -130,7 +131,10 @@ while True:
 
     client.loop(timeout=1) # Process MQTT messages with a 1-second timeout
 
-    with GPSDClient(host="127.0.0.1") as gps_client:
+    with serial.Serial(device, baudrate, timeout=1) as ser:
+        with GPSDClient(host="127.0.0.1") as gps_client:
+            ser.flushInput()
+            ser.flushOutput()
         for raw_result in gps_client.json_stream():
             result = json.loads(raw_result)
             if result.get("class") == "TPV":
