@@ -2,6 +2,7 @@
 
 ## [2024.1.0] - 2024-01-27
  - Improved serial device handling, including setting baudrate
+ - Merged upstream changes from Home Assistant builder
 
 ## [2023.8.0] - 2023-08-28
 

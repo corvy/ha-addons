@@ -46,5 +46,8 @@ echo "Starting GPSD with device \"${DEVICE}\"..."
 /usr/sbin/gpsd --version
 /usr/sbin/gpsd ${GPSD_OPTIONS} ${GPSD_SOCKET} ${DEVICE}
 
+echo "Checking device settings"
+/usr/bin/gpsctl
+
 # Start python script to publish results from GPSD to MQTT
 python /gpsd2mqtt.py
