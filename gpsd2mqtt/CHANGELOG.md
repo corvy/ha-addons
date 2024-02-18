@@ -1,5 +1,8 @@
 # Changelog
 
+## [2024.2.1] - 2024-02-18
+ - Fixing bug, not updating MQTT in 2024.2.0.
+
 ## [2024.2.0] - 2024-02-18
  - Setting baudrate directly to GPSD binary option, defaults to 9600 without it
 
