@@ -20,7 +20,7 @@ STOPBIT="-cstopb"
 
 echo "Setting up serial device with the following: ${DEVICE} ${BAUDRATE} ${BITS} ${CONTROL} ${STOPBIT}"
 /bin/stty -F ${DEVICE} raw ${BAUDRATE} ${BITS} ${CONTROL} ${STOPBIT}
-/bin/setserial ${DEVICE} low_latency
+# /bin/setserial ${DEVICE} low_latency
 
 # Config file for gpsd server
 #usage: gpsd [OPTIONS] device...
@@ -44,7 +44,7 @@ echo "Setting up serial device with the following: ${DEVICE} ${BAUDRATE} ${BITS}
 
 echo "Starting GPSD with device \"${DEVICE}\"..."
 /usr/sbin/gpsd --version
-/usr/sbin/gpsd ${GPSD_OPTIONS} ${GPSD_SOCKET} ${DEVICE}
+/usr/sbin/gpsd ${GPSD_OPTIONS} -s ${BAUDRATE} ${GPSD_SOCKET} ${DEVICE}
 
 #echo "Checking device settings"
 #/usr/bin/gpsctl

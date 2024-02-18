@@ -1,5 +1,8 @@
 # Changelog
 
+## [2024.2.0] - 2024-02-18
+ - Setting baudrate directly to GPSD binary option, defaults to 9600 without it
+
 ## [2024.1.0] - 2024-01-27
  - Improved serial device handling, added som more debugging
  - Merged upstream changes from Home Assistant builder
