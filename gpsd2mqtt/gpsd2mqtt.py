@@ -120,7 +120,7 @@ def reconnect_to_mqtt():
 
 def on_message(client, userdata, msg):
     logger.debug("Received message: " + msg.topic + " " + str(msg.payload))
-    if msg.topic == "hass/status" and msg.payload.decode() == "online":
+    if msg.topic == "homeassistant/status" and msg.payload.decode() == "online":
         # Resend the MQTT discovery message
         client.publish(mqtt_config, json_config)
         logger.info("Re-sent MQTT discovery message due to Home Assistant reboot")
