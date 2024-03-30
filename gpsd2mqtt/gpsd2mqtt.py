@@ -149,7 +149,7 @@ json_config = '''{{
     "payload_home": "home",
     "payload_not_home": "not_home",
     "payload_reset": "check_zone",
-    "retain": true,
+    "retain": "true",
     "json_attributes_topic": "{mqtt_attr}"
 }}'''.format(mqtt_state=mqtt_state, mqtt_attr=mqtt_attr)
 
