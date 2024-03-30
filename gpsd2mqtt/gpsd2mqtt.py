@@ -64,6 +64,8 @@ logger.debug('Publish interval:' + str(publish_interval))
 logger.debug('Summary interval:' + str(summary_interval))
 logger.debug('Debug enabled: ' + str(debug))
 
+# Now, create an instance of the MQTT client and set up the appropriate callbacks:
+client = mqtt.Client()
 
 # Set username and password, and connect to MQTT
 client.username_pw_set(mqtt_username, mqtt_pw)
@@ -128,9 +130,6 @@ def on_log(client, userdata, level, buf):
 
 #def on_message(client, userdata, msg):
 #    logger.debug("Received message: " + msg.topic + " " + str(msg.payload))
-
-# Now, create an instance of the MQTT client and set up the appropriate callbacks:
-client = mqtt.Client()
 
 # Set the callback functions
 client.on_connect = on_connect
