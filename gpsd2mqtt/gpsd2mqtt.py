@@ -116,6 +116,28 @@ client.on_message = on_message
 client.username_pw_set(mqtt_username, mqtt_pw)
 client.connect(mqtt_broker, mqtt_port)
 
+
+# Create the device using the Home Assistant discovery protocol and set the state not_home
+json_config = '''{{
+    "state_topic": "{mqtt_state}",
+    "unique_id": "gpsd_mqtt",
+    "name": "GPS Location",
+    "platform": "mqtt",
+    "payload_home": "home",
+    "payload_not_home": "not_home",
+    "payload_reset": "check_zone",
+    "json_attributes_topic": "{mqtt_attr}",
+    "device": { 
+        "identifiers": ["gpsd_mqtt"]  # Must be identical to unique_id
+    }
+}}'''.format(mqtt_state=mqtt_state, mqtt_attr=mqtt_attr)
+
+client.publish(mqtt_config, json_config)
+logger.info(f"Published MQTT discovery message to topic: {mqtt_attr}")
+logger.debug(f"Published {json_config} discovery message to topic: {mqtt_attr}")
+#client.publish(mqtt_state, "not_home") # Reset state to not_home on startup
+
+
 # Define the MQTT discovery message
 discovery_message = {
     "state_topic": mqtt_state,
@@ -134,17 +156,6 @@ discovery_message = {
         "name": "GPS Location"
     }
 }
-
-# Convert the discovery message to JSON
-discovery_json = json.dumps(discovery_message)
-
-# Publish the discovery message to the MQTT broker
-client.publish("homeassistant/device_tracker/gpsd/config", discovery_json)
-
-logger.info(f"Published MQTT discovery message to topic: {mqtt_attr}")
-logger.debug(f"Published {discovery_json} discovery message to topic: {mqtt_attr}")
-
-#client.publish(mqtt_state, "not_home") # Reset state to not_home on startup
 
 # Main program loop
 while True:
