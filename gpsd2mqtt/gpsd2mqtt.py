@@ -65,14 +65,13 @@ logger.debug('Summary interval:' + str(summary_interval))
 logger.debug('Debug enabled: ' + str(debug))
 
 
-# Define the necessary callback functions for the MQTT client
+# Next, define the necessary callback functions for the MQTT client
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
         logger.info("Connected to MQTT broker")
     else:
         logger.error("Failed to connect, return code: " + str(rc))
 
-# If MQTT Connection is lost, reconnect
 def on_disconnect(client, userdata, rc):
     if rc != 0:
         logger.warning("Disconnected from MQTT broker. Attempting reconnection...")
@@ -96,6 +95,30 @@ def reconnect_to_mqtt():
     
     if attempt > MAX_RECONNECT_ATTEMPTS:
         logger.error("Exceeded maximum reconnection attempts. Giving up.")
+
+    if rc != 0:
+        logger.warning("Disconnected from MQTT broker. Attempting reconnection...")
+        reconnect_to_mqtt()
+
+def reconnect_to_mqtt():
+    attempt = 1
+    while attempt <= MAX_RECONNECT_ATTEMPTS:
+        try:
+            logger.info("Trying to reconnect to MQTT broker (attempt {} of {})...".format(attempt, MAX_RECONNECT_ATTEMPTS))
+            client.reconnect()
+            break  # If reconnection successful, exit the loop
+        except Exception as e:
+            logger.error("Failed to reconnect to MQTT broker: " + str(e))
+        
+        # Calculate the delay using exponential backoff formula
+        reconnect_delay = RECONNECT_DELAY_BASE * (2 ** (attempt - 1))
+        logger.info("Waiting {} seconds before next reconnection attempt...".format(reconnect_delay))
+        time.sleep(reconnect_delay)
+        attempt += 1
+    
+    if attempt > MAX_RECONNECT_ATTEMPTS:
+        logger.error("Exceeded maximum reconnection attempts. Giving up.")
+
 
 def on_log(client, userdata, level, buf):
     logger.debug(buf)
@@ -127,8 +150,9 @@ json_config = '''{{
     "payload_not_home": "not_home",
     "payload_reset": "check_zone",
     "json_attributes_topic": "{mqtt_attr}",
-    "device": { 
-        "identifiers": ["gpsd_mqtt"]  # Must be identical to unique_id
+    "device": {
+        "identifiers": ["gpsd_mqtt"],  
+        "name": "GPS Location"
     }
 }}'''.format(mqtt_state=mqtt_state, mqtt_attr=mqtt_attr)
 
@@ -136,26 +160,6 @@ client.publish(mqtt_config, json_config)
 logger.info(f"Published MQTT discovery message to topic: {mqtt_attr}")
 logger.debug(f"Published {json_config} discovery message to topic: {mqtt_attr}")
 #client.publish(mqtt_state, "not_home") # Reset state to not_home on startup
-
-
-# Define the MQTT discovery message
-discovery_message = {
-    "state_topic": mqtt_state,
-    "unique_id": "gpsd_mqtt",  # Make sure this is unique
-    "name": "GPS Location",
-    "platform": "mqtt",
-    "payload_home": "home",
-    "payload_not_home": "not_home",
-    "payload_reset": "check_zone",
-    "json_attributes_topic": mqtt_attr,
-    "availability_topic": "topic/to/publish/availability",
-    "payload_available": "online",
-    "payload_not_available": "offline",
-    "device": {
-        "identifiers": ["gpsd_mqtt"],  
-        "name": "GPS Location"
-    }
-}
 
 # Main program loop
 while True:
