@@ -5,6 +5,8 @@ import time
 import serial
 import platform
 import hashlib
+import signal
+import sys
 import paho.mqtt.client as mqtt
 from gpsdclient import GPSDClient
 
@@ -97,6 +99,21 @@ client = mqtt.Client()
 # Set username and password, and connect to MQTT
 client.username_pw_set(mqtt_username, mqtt_pw)
 client.connect(mqtt_broker, mqtt_port)
+
+def shutdown():
+    # Publish blank config to delete entities configured but the addon
+    logger.info("Shutdown detected, cleaning up.")
+    client.publish(mqtt_config)
+
+def signal_handler(sig, frame):
+    # Handle shutdown signal
+    shutdown()
+    client.disconnect()
+    sys.exit(0)
+
+# Register signal handler for SIGTERM and SIGINT
+signal.signal(signal.SIGTERM, signal_handler)
+signal.signal(signal.SIGINT, signal_handler)
 
 # Create the device using the Home Assistant discovery protocol and set the state not_home
 json_config = f'''
