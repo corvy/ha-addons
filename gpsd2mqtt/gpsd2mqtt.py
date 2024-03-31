@@ -3,8 +3,32 @@ import datetime
 import logging
 import time
 import serial
+import platform
+import hashlib
 import paho.mqtt.client as mqtt
 from gpsdclient import GPSDClient
+
+# To make sure Home Assistant gets a uniique identifier, we use this section to crate a simple 8 character UID
+def get_unique_identifier():
+    system_info = platform.uname()
+
+    unique_identifier = "-".join([
+        system_info.node,  # Hostname - increase the chance of uniqueness
+        system_info.system,  # System - e.g. Windows or Linux
+        system_info.machine,  # Machine - for instance x86
+    ])
+
+    # Hash the combined attributes using SHA-256
+    hashed_identifier = hashlib.sha256(unique_identifier.encode()).hexdigest()
+
+    # Truncate the hash to 8 characters
+    truncated_identifier = hashed_identifier[:8]
+
+    return truncated_identifier
+
+
+# Get a unique identifier for the MQTT configuration topic
+unique_identifier = get_unique_identifier()
 
 # Read the config options from the JSON file
 with open("/data/options.json", "r") as jsonfile:
@@ -18,9 +42,9 @@ mqtt_port = data.get("mqtt_port") or 1883
 mqtt_username = data.get("mqtt_username") or "addons"
 mqtt_pw = data.get("mqtt_pw") or ""
 # Default confiuration options, should normally not be changed
-mqtt_config = data.get("mqtt_config", "homeassistant/device_tracker/gpsd/config")
-mqtt_state = data.get("mqtt_state", "gpsd/state")
-mqtt_attr = data.get("mqtt_attr", "gpsd/attribute")
+mqtt_config = data.get("mqtt_config", "homeassistant/device_tracker/gpsd2mqtt/{unique_identifier}/config")
+mqtt_state = data.get("mqtt_state", "gpsd/device_tracker/state")
+mqtt_attr = data.get("mqtt_attr", "gpsd/device_tracker/attribute")
 debug = data.get("debug", False)
 # Variables used to publish updates to the
 summary_interval = data.get("summary_interval") or 120 # Interval in seconds
@@ -33,7 +57,6 @@ result = None
 # Define parameters for exponential backoff
 RECONNECT_DELAY_BASE = 5  # Initial delay in seconds
 MAX_RECONNECT_ATTEMPTS = 10  # Maximum number of reconnection attempts
-
 
 # Set up logging, adding timestamp to the logs
 logging.basicConfig(
@@ -74,16 +97,25 @@ client.connect(mqtt_broker, mqtt_port)
 # Create the device using the Home Assistant discovery protocol and set the state not_home
 json_config = '''{{
     "state_topic": "{mqtt_state}",
-    "unique_id": "gpsd_mqtt",
+    "unique_id": "{unique_identifier}",
     "name": "GPS Location",
     "platform": "mqtt",
     "payload_home": "home",
     "payload_not_home": "not_home",
     "payload_reset": "check_zone",
-    "json_attributes_topic": "{mqtt_attr}"
+    "json_attributes_topic": "{mqtt_attr}",
+    "device": {
+        "identifiers": "gpsd-{unique_identifier}",  # This must match for all entities (if more are needed) 
+        "configuration_url": "https://github.com/corvy/ha-addons/tree/main/gpsd2mqtt",
+        "name": "GPSD Service",
+        "model": "gpsd2MQTT",
+        "manufacturer": "GPSD"
+    }
 }}'''.format(mqtt_state=mqtt_state, mqtt_attr=mqtt_attr)
 
+client.publish("homeassistant/device_tracker/gpsd/config") # If using the old version of gpsd2mqtt this device should be cleaned up 
 client.publish(mqtt_config, json_config)
+#client.publish(mqtt_config, json_config, retain=True)
 logger.info(f"Published MQTT discovery message to topic: {mqtt_attr}")
 logger.debug(f"Published {json_config} discovery message to topic: {mqtt_attr}")
 
