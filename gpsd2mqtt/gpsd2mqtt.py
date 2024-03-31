@@ -120,12 +120,12 @@ json_config = f'''
 {{
     "state_topic": "{mqtt_state}",
     "unique_id": "{unique_identifier}",
-    "name": "Device Tracker",
+    "name": "Location",
     "platform": "mqtt",
     "payload_home": "home",
     "payload_not_home": "not_home",
     "payload_reset": "check_zone",
-    "object_id": "gpsd_location",
+    "object_id": "gps_location",
     "json_attributes_topic": "{mqtt_attr}",
     "device": {{
         "name": "GPSD Service",
