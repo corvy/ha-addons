@@ -103,13 +103,14 @@ json_config = f'''
 {{
     "state_topic": "{mqtt_state}",
     "unique_id": "{unique_identifier}",
-    "name": "GPS Location",
+    "name": "tracker",
     "platform": "mqtt",
     "payload_home": "home",
     "payload_not_home": "not_home",
     "payload_reset": "check_zone",
     "json_attributes_topic": "{mqtt_attr}",
     "device": {{
+        "name": "GPSD",
         "identifiers": "gpsd2mqtt_{unique_identifier}", 
         "configuration_url": "https://github.com/corvy/ha-addons/tree/main/gpsd2mqtt",
         "model": "gpsd2MQTT",
