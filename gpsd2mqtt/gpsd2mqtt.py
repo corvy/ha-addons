@@ -118,12 +118,12 @@ def reconnect_to_mqtt():
     if attempt > MAX_RECONNECT_ATTEMPTS:
         logger.error("Exceeded maximum reconnection attempts. Giving up.")
 
-#def on_message(client, userdata, msg):
-#    logger.debug("Received message: " + msg.topic + " " + str(msg.payload))
-#    if msg.topic == "homeassistant/status" and msg.payload.decode() == "online":
-#        # Resend the MQTT discovery message
-#        client.publish(mqtt_config, json_config)
-#        logger.info("Re-sent MQTT discovery message due to Home Assistant reboot")
+def on_message(client, userdata, msg):
+    logger.debug("Received message: " + msg.topic + " " + str(msg.payload))
+    if msg.topic == "homeassistant/status" and msg.payload.decode() == "online":
+        # Resend the MQTT discovery message
+        client.publish(mqtt_config, json_config)
+        logger.info("Re-sent MQTT discovery message due to Home Assistant reboot")
 
 def on_log(client, userdata, level, buf):
     logger.debug(buf)
@@ -181,7 +181,6 @@ while True:
                 
                 # Publish the JSON message to the MQTT broker
                 if (datetime.datetime.now() - last_published_time).total_seconds() >= publish_interval:
-                    client.publish(mqtt_state, "online") # Tell HA device is online (needed if HA reboots for instance)
                     client.publish(mqtt_attr, json.dumps(result))
                     published_updates += 1 # Add one per publish for the summary log 
                     logger.debug(f"Published: {result} to topic: {mqtt_attr}")
