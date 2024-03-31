@@ -126,6 +126,7 @@ json_config = f'''
     "payload_not_home": "not_home",
     "payload_reset": "check_zone",
     "object_id": "gps_location",
+    "icon":"mdi:map-marker",
     "json_attributes_topic": "{mqtt_attr}",
     "device": {{
         "name": "GPSD Service",
