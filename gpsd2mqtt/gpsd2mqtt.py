@@ -103,7 +103,7 @@ client.connect(mqtt_broker, mqtt_port)
 def shutdown():
     # Publish blank config to delete entities configured but the addon
     logger.info("Shutdown detected, cleaning up.")
-    client.publish(mqtt_config)
+    # client.publish(mqtt_config)
 
 def signal_handler(sig, frame):
     # Handle shutdown signal
@@ -125,6 +125,7 @@ json_config = f'''
     "payload_home": "home",
     "payload_not_home": "not_home",
     "payload_reset": "check_zone",
+    "object_id": "gpsd_location",
     "json_attributes_topic": "{mqtt_attr}",
     "device": {{
         "name": "GPSD Service",
