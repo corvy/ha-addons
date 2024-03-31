@@ -110,11 +110,10 @@ json_config = f'''
     "payload_reset": "check_zone",
     "json_attributes_topic": "{mqtt_attr}",
     "device": {{
-        "name": "GPSD Service", 
         "identifiers": "gpsd2mqtt_{unique_identifier}", 
         "configuration_url": "https://github.com/corvy/ha-addons/tree/main/gpsd2mqtt",
         "model": "gpsd2MQTT",
-        "manufacturer": "GPSD"
+        "manufacturer": "GPSD and @sbarmen"
     }}
 }}
 '''
