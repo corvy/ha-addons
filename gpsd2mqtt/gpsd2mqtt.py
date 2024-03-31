@@ -83,13 +83,13 @@ logger.debug('MQTT Hostname: ' + mqtt_broker)
 logger.debug('MQTT TCP Port: ' + str(mqtt_port))
 logger.debug('MQTT Username: ' + mqtt_username)
 logger.debug('MQTT Password: ' + mqtt_pw)
-logger.debug('MQTT Config:' + mqtt_config)
-logger.debug('MQTT State:' + mqtt_attr)
-logger.debug('MQTT Attribute:' + mqtt_state)
-logger.debug('Publish interval:' + str(publish_interval))
-logger.debug('Summary interval:' + str(summary_interval))
+logger.debug('MQTT Config: ' + mqtt_config)
+logger.debug('MQTT State: ' + mqtt_state)
+logger.debug('MQTT Attribute: ' + mqtt_attr)
+logger.debug('Publish interval: ' + str(publish_interval))
+logger.debug('Summary interval: ' + str(summary_interval))
 logger.debug('Debug enabled: ' + str(debug))
-logger.debug('Unique ID:' + unique_identifier)
+logger.debug('Unique ID: ' + unique_identifier)
 
 # Now, create an instance of the MQTT client and set up the appropriate callbacks:
 client = mqtt.Client()
@@ -119,11 +119,10 @@ json_config = f'''
 }}
 '''
 
-client.publish("homeassistant/device_tracker/gpsd/config") # If using the old version of gpsd2mqtt this device should be cleaned up 
 client.publish(mqtt_config, json_config)
 #client.publish(mqtt_config, json_config, retain=True)
-logger.info(f"Published MQTT discovery message to topic: {mqtt_attr}")
-logger.debug(f"Published {json_config} discovery message to topic: {mqtt_attr}")
+logger.info(f"Published MQTT discovery message to topic: {mqtt_config}")
+logger.debug(f"Published {json_config} discovery message to topic: {mqtt_config}")
 
 # Next, define the necessary callback functions for the MQTT client
 def on_connect(client, userdata, flags, rc):
