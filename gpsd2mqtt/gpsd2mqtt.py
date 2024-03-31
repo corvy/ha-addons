@@ -193,7 +193,7 @@ def on_log(client, userdata, level, buf):
 client.on_connect = on_connect
 client.on_disconnect = on_disconnect
 client.on_log = on_log
-# client.on_message = on_message
+client.on_message = on_message
 
 # Main program loop
 while True:
