@@ -42,7 +42,7 @@ mqtt_port = data.get("mqtt_port") or 1883
 mqtt_username = data.get("mqtt_username") or "addons"
 mqtt_pw = data.get("mqtt_pw") or ""
 # Default confiuration options, should normally not be changed
-mqtt_config = data.get("mqtt_config", "homeassistant/device_tracker/" + unique_identifier + "/config")
+mqtt_config = data.get("mqtt_config", "homeassistant/device_tracker/gpsd2mqtt/" + unique_identifier + "/config")
 mqtt_state = data.get("mqtt_state", "gpsd2mqtt/" + unique_identifier + "/state")
 mqtt_attr = data.get("mqtt_attr", "gpsd2mqtt/" + unique_identifier + "/attribute")
 debug = data.get("debug", False)
@@ -108,14 +108,14 @@ json_config = f'''
     "payload_home": "home",
     "payload_not_home": "not_home",
     "payload_reset": "check_zone",
-    "json_attributes_topic": "{mqtt_attr}",
-    "device": {{
-        "name": "GPSD Service",                         # This must match for all entities (if more are needed) 
-        "identifiers": "{unique_identifier}",      # This must match for all entities (if more are needed) 
-        "configuration_url": "https://github.com/corvy/ha-addons/tree/main/gpsd2mqtt",
-        "model": "gpsd2MQTT",
-        "manufacturer": "GPSD"
-    }}
+    "json_attributes_topic": "{mqtt_attr}" #,
+#    "device": {{
+#        "name": "GPSD Service",                         # This must match for all entities (if more are needed) 
+#        "identifiers": "{unique_identifier}",      # This must match for all entities (if more are needed) 
+#        "configuration_url": "https://github.com/corvy/ha-addons/tree/main/gpsd2mqtt",
+#        "model": "gpsd2MQTT",
+#        "manufacturer": "GPSD"
+#    }}
 }}
 '''
 
