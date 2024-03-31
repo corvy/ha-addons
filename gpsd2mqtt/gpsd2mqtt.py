@@ -111,7 +111,7 @@ json_config = f'''
     "json_attributes_topic": "{mqtt_attr}",
     "device": {{
         "name": "GPSD Service",                         # This must match for all entities (if more are needed) 
-        "identifiers": "gpsd-{unique_identifier}",      # This must match for all entities (if more are needed) 
+        "identifiers": "{unique_identifier}",      # This must match for all entities (if more are needed) 
         "configuration_url": "https://github.com/corvy/ha-addons/tree/main/gpsd2mqtt",
         "model": "gpsd2MQTT",
         "manufacturer": "GPSD"
