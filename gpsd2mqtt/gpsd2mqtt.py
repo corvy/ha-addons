@@ -83,9 +83,12 @@ logger.debug('MQTT Hostname: ' + mqtt_broker)
 logger.debug('MQTT TCP Port: ' + str(mqtt_port))
 logger.debug('MQTT Username: ' + mqtt_username)
 logger.debug('MQTT Password: ' + mqtt_pw)
+logger.debug('MQTT State:' + mqtt_attr)
+logger.debug('MQTT Attribute:' + mqtt_state)
 logger.debug('Publish interval:' + str(publish_interval))
 logger.debug('Summary interval:' + str(summary_interval))
 logger.debug('Debug enabled: ' + str(debug))
+logger.debug('Unique ID:' + unique_identifier)
 
 # Now, create an instance of the MQTT client and set up the appropriate callbacks:
 client = mqtt.Client()
