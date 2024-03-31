@@ -42,7 +42,7 @@ mqtt_port = data.get("mqtt_port") or 1883
 mqtt_username = data.get("mqtt_username") or "addons"
 mqtt_pw = data.get("mqtt_pw") or ""
 # Default confiuration options, should normally not be changed
-mqtt_config = data.get("mqtt_config", "homeassistant/device_tracker/gpsd2mqtt/" + unique_identifier + "/config")
+mqtt_config = data.get("mqtt_config", "homeassistant/device_tracker/" + unique_identifier + "/config")
 mqtt_state = data.get("mqtt_state", "gpsd2mqtt/" + unique_identifier + "/state")
 mqtt_attr = data.get("mqtt_attr", "gpsd2mqtt/" + unique_identifier + "/attribute")
 debug = data.get("debug", False)
