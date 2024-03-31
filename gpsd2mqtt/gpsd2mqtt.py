@@ -43,8 +43,8 @@ mqtt_username = data.get("mqtt_username") or "addons"
 mqtt_pw = data.get("mqtt_pw") or ""
 # Default confiuration options, should normally not be changed
 mqtt_config = data.get("mqtt_config", "homeassistant/device_tracker/gpsd2mqtt/" + unique_identifier + "/config")
-mqtt_state = data.get("mqtt_state", "gpsd/device_tracker/state")
-mqtt_attr = data.get("mqtt_attr", "gpsd/device_tracker/attribute")
+mqtt_state = data.get("mqtt_state", "gpsd2mqtt/" + unique_identifier + "/state")
+mqtt_attr = data.get("mqtt_attr", "gpsd2mqtt/" + unique_identifier + "/attribute")
 debug = data.get("debug", False)
 # Variables used to publish updates to the
 summary_interval = data.get("summary_interval") or 120 # Interval in seconds
@@ -121,7 +121,9 @@ json_config = f'''
 
 client.publish(mqtt_config, json_config)
 #client.publish(mqtt_config, json_config, retain=True)
-logger.info(f"Published MQTT discovery message to topic: {mqtt_config}")
+
+logger.info(f"Published MQTT discovery message to topic:" + mqtt_config)
+logger.info(f"Published MQTT State to not_home to:" + mqtt_state)
 logger.debug(f"Published {json_config} discovery message to topic: {mqtt_config}")
 
 # Next, define the necessary callback functions for the MQTT client
