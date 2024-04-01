@@ -89,9 +89,6 @@ logger.debug('Unique ID: ' + unique_identifier)
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
         logger.info("Connected to MQTT broker")
-        # Subscribe to the homeassistant/status topic to detect if HA reboots
-        client.subscribe("homeassistant/status")
-        logger.info("Subscribed to MQTT Topic homeassistant/status, to detect if HA reboots.")
     else:
         logger.error("Failed to connect, return code: " + str(rc))
 
@@ -145,6 +142,11 @@ client.on_message = on_message
 # Set username and password, and connect to MQTT
 client.username_pw_set(mqtt_username, mqtt_pw)
 client.connect(mqtt_broker, mqtt_port)
+
+# Subscribe to the homeassistant/status topic. This ensures the script detects 
+# HA reboots and then resubmits the discovery mesage
+client.subscribe("homeassistant/status")
+logger.info("Subscribe to MQTT topic homeassistant/status to listen for HA reboots.")
 
 def shutdown():
     # Publish blank config to delete entities configured but the addon
