@@ -91,6 +91,7 @@ def on_connect(client, userdata, flags, rc):
         logger.info("Connected to MQTT broker")
         # Subscribe to the homeassistant/status topic to detect if HA reboots
         client.subscribe("homeassistant/status")
+        logger.info("Subscribed to MQTT Topic homeassistant/status, to detect if HA reboots.")
     else:
         logger.error("Failed to connect, return code: " + str(rc))
 
@@ -106,8 +107,9 @@ def reconnect_to_mqtt():
             logger.info("Trying to reconnect to MQTT broker (attempt {} of {})...".format(attempt, MAX_RECONNECT_ATTEMPTS))
             client.reconnect()
             # If reconnection successful, subscribe to 
-            # the necessasry topics and exit the loop
+            # the necessary topics and exit the loop
             client.subscribe("homeassistant/status")
+            logger.info("Reconnect successful, resubscribing to necessary topics.")
             break  
         except Exception as e:
             logger.error("Failed to reconnect to MQTT broker: " + str(e))
@@ -185,22 +187,16 @@ json_config = f'''
 client.publish(mqtt_config, json_config) # Publish the discovery message
 
 logger.info(f"Published MQTT discovery message to topic:" + mqtt_config)
-logger.info(f"Published MQTT State to not_home to:" + mqtt_state)
 logger.debug(f"Published {json_config} discovery message to topic: {mqtt_config}")
-
 
 # Main program loop to update the device location from GPS
 while True:
-    # Check connection and perform reconnection if needed
-    if not client.is_connected():
-        reconnect_to_mqtt()
-
+    logger.info("Starting location detection and sending GPS updates.")
     # Check connection and perform reconnection if needed
     if not client.is_connected():
         reconnect_to_mqtt()
 
     client.loop(timeout=1) # Process MQTT messages with a 1-second timeout
-
 
     with GPSDClient(host="127.0.0.1") as gps_client:
 
