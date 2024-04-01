@@ -89,6 +89,10 @@ logger.debug('Unique ID: ' + unique_identifier)
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
         logger.info("Connected to MQTT broker")
+        # Subscribe to the homeassistant/status topic. This ensures the script detects 
+        # HA reboots and then resubmits the discovery mesage
+        client.subscribe("homeassistant/status")
+        logger.info("Subscribe to MQTT topic homeassistant/status to listen for HA reboots.")
     else:
         logger.error("Failed to connect, return code: " + str(rc))
 
@@ -143,11 +147,6 @@ client.on_message = on_message
 client.username_pw_set(mqtt_username, mqtt_pw)
 client.connect(mqtt_broker, mqtt_port)
 
-# Subscribe to the homeassistant/status topic. This ensures the script detects 
-# HA reboots and then resubmits the discovery mesage
-client.subscribe("homeassistant/status")
-logger.info("Subscribe to MQTT topic homeassistant/status to listen for HA reboots.")
-
 def shutdown():
     # Publish blank config to delete entities configured but the addon
     logger.info("Shutdown detected, cleaning up.")
@@ -194,9 +193,12 @@ logger.debug(f"Published {json_config} discovery message to topic: {mqtt_config}
 # Main program loop to update the device location from GPS
 while True:
     logger.info("Starting location detection and sending GPS updates.")
+
+    time.sleep(4) # Pause to make sure MQTT is connected before starting
+
     # Check connection and perform reconnection if needed
-    # if not client.is_connected():
-    #    reconnect_to_mqtt()
+    if not client.is_connected():
+       reconnect_to_mqtt()
 
     client.loop(timeout=1) # Process MQTT messages with a 1-second timeout
 
