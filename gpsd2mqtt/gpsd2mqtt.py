@@ -88,7 +88,6 @@ logger.debug('Unique ID: ' + unique_identifier)
 # Define the necessary callback functions for the MQTT client
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
-        client.connected_flag=True # Set flag to ensure script waits for successful connection before resuming
         logger.info("Connected to MQTT broker")
         # Subscribe to the homeassistant/status topic. This ensures the script detects 
         # HA reboots and then resubmits the discovery mesage
@@ -151,7 +150,7 @@ client.loop_start()
 logger.info("Connecting to MQTT broker")
 client.connect(mqtt_broker, mqtt_port)
 
-while not client.connected_flag:
+while not client.is_connected:
     time.sleep(1) # Pause to make sure MQTT is connected before starting
     logger.info("Waiting ....")
 
