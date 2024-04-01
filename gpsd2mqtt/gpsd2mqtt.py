@@ -195,8 +195,8 @@ logger.debug(f"Published {json_config} discovery message to topic: {mqtt_config}
 while True:
     logger.info("Starting location detection and sending GPS updates.")
     # Check connection and perform reconnection if needed
-    if not client.is_connected():
-        reconnect_to_mqtt()
+    # if not client.is_connected():
+    #    reconnect_to_mqtt()
 
     client.loop(timeout=1) # Process MQTT messages with a 1-second timeout
 
