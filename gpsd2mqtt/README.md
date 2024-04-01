@@ -12,23 +12,21 @@ The configuration is done via the addon GUI inside Home Assistant after installa
 
 ## Example automation to dynamically update position
 
-'''
-alias: Dynamic Update Home
-description: Update the Home location for Home Assistant based on GPS information
-trigger:
-  - platform: state
-    entity_id:
-      - device_tracker.gps_location
-    attribute: latitude
-  - platform: state
-    entity_id:
-      - device_tracker.gps_location
-    attribute: longitude
-condition: []
-action:
-  - service: homeassistant.set_location
-    data_template:
-      latitude: "{{ state_attr('device_tracker.gps_location', 'latitude') }}"
-      longitude: "{{ state_attr('device_tracker.gps_location', 'longitude') }}"
-mode: single
-'''
+    alias: Dynamic Update Home
+    description: Update the Home location for Home Assistant based on GPS information
+    trigger:
+      - platform: state
+        entity_id:
+          - device_tracker.gps_location
+        attribute: latitude
+      - platform: state
+        entity_id:
+          - device_tracker.gps_location
+        attribute: longitude
+    condition: []
+    action:
+      - service: homeassistant.set_location
+        data_template:
+          latitude: "{{ state_attr('device_tracker.gps_location', 'latitude') }}"
+          longitude: "{{ state_attr('device_tracker.gps_location', 'longitude') }}"
+    mode: single
