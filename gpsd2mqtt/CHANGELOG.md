@@ -1,5 +1,11 @@
 # Changelog
 
+## [2024.4.0] - 2024-04-01
+ - Reworked addon to listen for LWT messages from Home Assistant. This ensures that the device tracker gets discovered after reboots.
+ - Changed the discovery message so it becomes a device under MQTT and shows in the devices dashboard (config/devices/dashboard)
+ - Added unique ID to discovery message, enabling the user to edit the device
+ - Added automation example to github readme
+
 ## [2024.2.1] - 2024-02-18
  - Fixing bug, not updating MQTT in 2024.2.0.
 

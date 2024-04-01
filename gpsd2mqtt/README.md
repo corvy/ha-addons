@@ -9,3 +9,26 @@ Remember to install Mosquitto or another broker before setting up this addon.
 Installation requires you to set up a username and password to publish to MQTT. Also you must select the serial device for GPSD in the configuration.
 
 The configuration is done via the addon GUI inside Home Assistant after installation.
+
+## Example automation to dynamically update position
+
+'''
+alias: Dynamic Update Home
+description: Update the Home location for Home Assistant based on GPS information
+trigger:
+  - platform: state
+    entity_id:
+      - device_tracker.gps_location
+    attribute: latitude
+  - platform: state
+    entity_id:
+      - device_tracker.gps_location
+    attribute: longitude
+condition: []
+action:
+  - service: homeassistant.set_location
+    data_template:
+      latitude: "{{ state_attr('device_tracker.gps_location', 'latitude') }}"
+      longitude: "{{ state_attr('device_tracker.gps_location', 'longitude') }}"
+mode: single
+'''

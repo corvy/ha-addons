@@ -44,6 +44,7 @@ mqtt_port = data.get("mqtt_port") or 1883
 mqtt_username = data.get("mqtt_username") or "addons"
 mqtt_pw = data.get("mqtt_pw") or ""
 # Default confiuration options, should normally not be changed
+mqtt_config_deprecated = ("homeassistant/device_tracker/gpsd/config") # Only needed to cleanup - can be removed in the future
 mqtt_config = data.get("mqtt_config", "homeassistant/device_tracker/gpsd2mqtt/" + unique_identifier + "/config")
 mqtt_state = data.get("mqtt_state", "gpsd2mqtt/" + unique_identifier + "/state")
 mqtt_attr = data.get("mqtt_attr", "gpsd2mqtt/" + unique_identifier + "/attribute")
@@ -129,7 +130,7 @@ def on_message(client, userdata, msg):
     if msg.topic == "homeassistant/status" and msg.payload.decode() == "online":
         # Resend the MQTT discovery message
         client.publish(mqtt_config, json_config)
-        logger.info("Re-sent MQTT discovery message due to Home Assistant reboot")
+        logger.info("Home Assistant reboot detected. Re-sent MQTT discovery message.")
 
 def on_log(client, userdata, level, buf):
     logger.debug(buf)
@@ -153,7 +154,7 @@ client.connect(mqtt_broker, mqtt_port)
 # Pause to make sure MQTT is connected before resuming
 while not client.is_connected():
     time.sleep(1) 
-    logger.info("Waiting for MQTT Connection ....")
+    logger.info("Verifying MQTT Connection ....")
 
 def shutdown():
     # Publish blank config to delete entities configured but the addon
@@ -192,7 +193,7 @@ json_config = f'''
     }}
 }}
 '''
-
+client.publish(mqtt_config_deprecated) # Empty config for deprecated device to cleanup
 client.publish(mqtt_config, json_config) # Publish the discovery message
 
 logger.info(f"Published MQTT discovery message to topic:" + mqtt_config)
