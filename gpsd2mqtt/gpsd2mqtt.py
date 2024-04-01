@@ -65,16 +65,7 @@ logging.basicConfig(
     level=logging.DEBUG if debug else logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',  # Adding %(asctime)s for timestamp
 )
-# Define parameters for exponential backoff
-RECONNECT_DELAY_BASE = 5  # Initial delay in seconds
-MAX_RECONNECT_ATTEMPTS = 10  # Maximum number of reconnection attempts
 
-
-# Set up logging, adding timestamp to the logs
-logging.basicConfig(
-    level=logging.DEBUG if debug else logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',  # Adding %(asctime)s for timestamp
-)
 logger = logging.getLogger("MQTT Publisher")
 
 # Print the variables in use
@@ -93,8 +84,61 @@ logger.debug('Summary interval: ' + str(summary_interval))
 logger.debug('Debug enabled: ' + str(debug))
 logger.debug('Unique ID: ' + unique_identifier)
 
+
+# Define the necessary callback functions for the MQTT client
+def on_connect(client, userdata, flags, rc):
+    if rc == 0:
+        logger.info("Connected to MQTT broker")
+        # Subscribe to the homeassistant/status topic to detect if HA reboots
+        client.subscribe("homeassistant/status")
+    else:
+        logger.error("Failed to connect, return code: " + str(rc))
+
+def on_disconnect(client, userdata, rc):
+    if rc != 0:
+        logger.warning("Disconnected from MQTT broker. Attempting reconnection...")
+        reconnect_to_mqtt()
+
+def reconnect_to_mqtt():
+    attempt = 1
+    while attempt <= MAX_RECONNECT_ATTEMPTS:
+        try:
+            logger.info("Trying to reconnect to MQTT broker (attempt {} of {})...".format(attempt, MAX_RECONNECT_ATTEMPTS))
+            client.reconnect()
+            # If reconnection successful, subscribe to 
+            # the necessasry topics and exit the loop
+            client.subscribe("homeassistant/status")
+            break  
+        except Exception as e:
+            logger.error("Failed to reconnect to MQTT broker: " + str(e))
+        
+        # Calculate the delay using exponential backoff formula
+        reconnect_delay = RECONNECT_DELAY_BASE * (2 ** (attempt - 1))
+        logger.info("Waiting {} seconds before next reconnection attempt...".format(reconnect_delay))
+        time.sleep(reconnect_delay)
+        attempt += 1
+    
+    if attempt > MAX_RECONNECT_ATTEMPTS:
+        logger.error("Exceeded maximum reconnection attempts. Giving up.")
+
+def on_message(client, userdata, msg):
+    logger.debug("Received message: " + msg.topic + " " + str(msg.payload))
+    if msg.topic == "homeassistant/status" and msg.payload.decode() == "online":
+        # Resend the MQTT discovery message
+        client.publish(mqtt_config, json_config)
+        logger.info("Re-sent MQTT discovery message due to Home Assistant reboot")
+
+def on_log(client, userdata, level, buf):
+    logger.debug(buf)
+
 # Now, create an instance of the MQTT client and set up the appropriate callbacks:
 client = mqtt.Client()
+
+# Set the callback functions
+client.on_connect = on_connect
+client.on_disconnect = on_disconnect
+client.on_log = on_log
+client.on_message = on_message
 
 # Set username and password, and connect to MQTT
 client.username_pw_set(mqtt_username, mqtt_pw)
@@ -138,64 +182,14 @@ json_config = f'''
 }}
 '''
 
-client.publish(mqtt_config, json_config)
-#client.publish(mqtt_config, json_config, retain=True)
+client.publish(mqtt_config, json_config) # Publish the discovery message
 
 logger.info(f"Published MQTT discovery message to topic:" + mqtt_config)
 logger.info(f"Published MQTT State to not_home to:" + mqtt_state)
 logger.debug(f"Published {json_config} discovery message to topic: {mqtt_config}")
 
-# Next, define the necessary callback functions for the MQTT client
-def on_connect(client, userdata, flags, rc):
-    if rc == 0:
-        logger.info("Connected to MQTT broker")
-    else:
-        logger.error("Failed to connect, return code: " + str(rc))
 
-def on_disconnect(client, userdata, rc):
-    if rc != 0:
-        logger.warning("Disconnected from MQTT broker. Attempting reconnection...")
-        reconnect_to_mqtt()
-
-def reconnect_to_mqtt():
-    attempt = 1
-    while attempt <= MAX_RECONNECT_ATTEMPTS:
-        try:
-            logger.info("Trying to reconnect to MQTT broker (attempt {} of {})...".format(attempt, MAX_RECONNECT_ATTEMPTS))
-            client.reconnect()
-            break  # If reconnection successful, exit the loop
-        except Exception as e:
-            logger.error("Failed to reconnect to MQTT broker: " + str(e))
-        
-        # Calculate the delay using exponential backoff formula
-        reconnect_delay = RECONNECT_DELAY_BASE * (2 ** (attempt - 1))
-        logger.info("Waiting {} seconds before next reconnection attempt...".format(reconnect_delay))
-        time.sleep(reconnect_delay)
-        attempt += 1
-    
-    if attempt > MAX_RECONNECT_ATTEMPTS:
-        logger.error("Exceeded maximum reconnection attempts. Giving up.")
-
-def on_message(client, userdata, msg):
-    logger.debug("Received message: " + msg.topic + " " + str(msg.payload))
-    if msg.topic == "homeassistant/status" and msg.payload.decode() == "online":
-        # Resend the MQTT discovery message
-        client.publish(mqtt_config, json_config)
-        logger.info("Re-sent MQTT discovery message due to Home Assistant reboot")
-
-def on_log(client, userdata, level, buf):
-    logger.debug(buf)
-
-#def on_message(client, userdata, msg):
-#    logger.debug("Received message: " + msg.topic + " " + str(msg.payload))
-
-# Set the callback functions
-client.on_connect = on_connect
-client.on_disconnect = on_disconnect
-client.on_log = on_log
-client.on_message = on_message
-
-# Main program loop
+# Main program loop to update the device location from GPS
 while True:
     # Check connection and perform reconnection if needed
     if not client.is_connected():
