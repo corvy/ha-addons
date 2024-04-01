@@ -150,9 +150,10 @@ client.loop_start()
 logger.info("Connecting to MQTT broker")
 client.connect(mqtt_broker, mqtt_port)
 
-while not client.is_connected:
-    time.sleep(1) # Pause to make sure MQTT is connected before starting
-    logger.info("Waiting ....")
+# Pause to make sure MQTT is connected before resuming
+while not client.is_connected():
+    time.sleep(1) 
+    logger.info("Waiting for MQTT Connection ....")
 
 def shutdown():
     # Publish blank config to delete entities configured but the addon
