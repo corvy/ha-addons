@@ -54,7 +54,7 @@ summary_interval = data.get("summary_interval") or 120 # Interval in seconds
 publish_interval = data.get("publish_interval") or 10
 published_updates = 0
 last_summary_time = datetime.datetime.now()
-last_published_time = datetime.datetime.now()
+last_publish_time = datetime.datetime.now()
 result = None
 
 # Define parameters for exponential backoff
@@ -234,14 +234,11 @@ while True:
                     result["longitude"] = result.pop("lon")
                 if "lat" in result and result["lat"] is not None:
                     result["latitude"] = result.pop("lat")
-                
-                logger.debug("Accuracy achieved:" + result["accuracy"])
 
-                # Initialize variable for limiting the publishing of updates 
-                last_publish_time = datetime.datetime.now()
                 # Limit the GPS updates to the configured value
                 if (datetime.datetime.now() - last_publish_time).total_seconds() >= publish_interval:
 
+                    logger.debug("Accuracy achieved:" + result["accuracy"])
                     # Publish the JSON message to the MQTT broker only if mode is 3D fix
                     if (publish_3d_fix_only and mode == 3):
                         client.publish(mqtt_attr, json.dumps(result))
@@ -253,6 +250,8 @@ while True:
                         client.publish(mqtt_attr, json.dumps(result))
                         published_updates += 1
                         logger.debug(f"Published: {result} to topic: {mqtt_attr}")
+
+                    last_summary_time = datetime.datetime.now()
                         
             # Check if a summary should be printed
             if (datetime.datetime.now() - last_summary_time).total_seconds() >= summary_interval:
