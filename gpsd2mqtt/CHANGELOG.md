@@ -2,6 +2,7 @@
 
 ## [2024.4.1] - 2024-04-01
  - Add option to only publish rwhen good GPS fix is achieved, and made it default. Option called "3D Fix Only"
+ - Fix the configurable publish interval setting. Made the option mandatory with a default of 10 seconds. 
 
 ## [2024.4.0] - 2024-04-01
  - Reworked addon to listen for LWT messages from Home Assistant. This ensures that the device tracker gets discovered after reboots.
