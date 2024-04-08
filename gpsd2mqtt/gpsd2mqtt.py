@@ -251,7 +251,7 @@ while True:
                         published_updates += 1
                         logger.debug(f"Published: {result} to topic: {mqtt_attr}")
 
-                last_summary_time = datetime.datetime.now()
+                    last_publish_time = datetime.datetime.now()
                         
             # Check if a summary should be printed
             if (datetime.datetime.now() - last_summary_time).total_seconds() >= summary_interval:
