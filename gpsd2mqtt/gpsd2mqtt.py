@@ -2,13 +2,12 @@ import json
 import datetime
 import logging
 import time
-import serial
 import platform
 import hashlib
 import signal
 import sys
-import paho.mqtt.client as mqtt
-from gpsdclient import GPSDClient
+import paho.mqtt.client as mqtt # type: ignore
+from gpsdclient import GPSDClient # type: ignore
 
 # To make sure Home Assistant gets a uniique identifier, we use this section to crate a simple 8 character UID
 def get_unique_identifier():
