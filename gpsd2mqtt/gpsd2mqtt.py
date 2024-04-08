@@ -48,6 +48,7 @@ mqtt_config_deprecated = ("homeassistant/device_tracker/gpsd/config") # Only nee
 mqtt_config = data.get("mqtt_config", "homeassistant/device_tracker/gpsd2mqtt/" + unique_identifier + "/config")
 mqtt_state = data.get("mqtt_state", "gpsd2mqtt/" + unique_identifier + "/state")
 mqtt_attr = data.get("mqtt_attr", "gpsd2mqtt/" + unique_identifier + "/attribute")
+publish_3d_fix_only = data.get("publish_3d_fix_only", True)  # Default to True to reduce "unknown" positions
 debug = data.get("debug", False)
 # Variables used to publish updates to the
 summary_interval = data.get("summary_interval") or 120 # Interval in seconds
@@ -234,14 +235,17 @@ while True:
                     result["longitude"] = result.pop("lon")
                 if "lat" in result and result["lat"] is not None:
                     result["latitude"] = result.pop("lat")
-
-                ## Publish the GPS accurancy to the state_topic
-                # client.publish(mqtt_state, accuracy)
                 
-                # Publish the JSON message to the MQTT broker
-                if (datetime.datetime.now() - last_published_time).total_seconds() >= publish_interval:
+                # Publish the JSON message to the MQTT broker only if mode is 3D fix
+                if (publish_3d_fix_only and mode == 3):
                     client.publish(mqtt_attr, json.dumps(result))
                     published_updates += 1 # Add one per publish for the summary log 
+                    logger.debug(f"Published: {result} to topic: {mqtt_attr}")
+                    last_published_time = datetime.datetime.now()
+                else :
+                    # If not filtering on 3D fix, we publish all updates
+                    client.publish(mqtt_attr, json.dumps(result))
+                    published_updates += 1
                     logger.debug(f"Published: {result} to topic: {mqtt_attr}")
                     last_published_time = datetime.datetime.now()
 
