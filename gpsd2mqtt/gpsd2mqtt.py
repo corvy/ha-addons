@@ -173,9 +173,9 @@ signal.signal(signal.SIGTERM, signal_handler)
 signal.signal(signal.SIGINT, signal_handler)
 
 # Create the device using the Home Assistant discovery protocol and set the state not_home
+#     "state_topic": "{mqtt_state}", (Removed from json_config)
 json_config = f'''
 {{
-    "state_topic": "{mqtt_state}",
     "unique_id": "{unique_identifier}",
     "name": "Location",
     "platform": "mqtt",
