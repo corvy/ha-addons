@@ -235,21 +235,21 @@ while True:
                 if "lat" in result and result["lat"] is not None:
                     result["latitude"] = result.pop("lat")
 
-            # Limit the GPS updates to the configured value
-            if (datetime.datetime.now() - last_publish_time).total_seconds() >= publish_interval:
+                # Limit the GPS updates to the configured value
+                if (datetime.datetime.now() - last_publish_time).total_seconds() >= publish_interval:
 
-                logger.debug("Accuracy achieved:" + result["accuracy"])
-                # Publish the JSON message to the MQTT broker only if mode is 3D fix
-                if (publish_3d_fix_only and mode == 3):
-                    client.publish(mqtt_attr, json.dumps(result))
-                    published_updates += 1 # Add one per publish for the summary log 
-                    logger.debug(f"Published: {result} to topic: {mqtt_attr} (3D-fix-only)")
-                    
-                elif not publish_3d_fix_only :
-                    # If not filtering on 3D fix, we publish all updates
-                    client.publish(mqtt_attr, json.dumps(result))
-                    published_updates += 1
-                    logger.debug(f"Published: {result} to topic: {mqtt_attr}")
+                    logger.debug("Accuracy achieved:" + result["accuracy"])
+                    # Publish the JSON message to the MQTT broker only if mode is 3D fix
+                    if (publish_3d_fix_only and mode == 3):
+                        client.publish(mqtt_attr, json.dumps(result))
+                        published_updates += 1 # Add one per publish for the summary log 
+                        logger.debug(f"Published: {result} to topic: {mqtt_attr} (3D-fix-only)")
+                        
+                    elif not publish_3d_fix_only :
+                        # If not filtering on 3D fix, we publish all updates
+                        client.publish(mqtt_attr, json.dumps(result))
+                        published_updates += 1
+                        logger.debug(f"Published: {result} to topic: {mqtt_attr}")
 
                 last_summary_time = datetime.datetime.now()
                         
