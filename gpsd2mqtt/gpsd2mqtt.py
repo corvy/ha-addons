@@ -196,7 +196,7 @@ json_config = f'''
 client.publish(mqtt_config_deprecated) # Empty config for deprecated device to cleanup
 client.publish(mqtt_config, json_config) # Publish the discovery message
 
-logger.info(f"Published MQTT discovery message to topic:" + mqtt_config)
+logger.info(f"Published MQTT discovery message to topic: {mqtt_config}")
 logger.debug(f"Published {json_config} discovery message to topic: {mqtt_config}")
 
 # Main program loop to update the device location from GPS
@@ -235,6 +235,8 @@ while True:
                 if "lat" in result and result["lat"] is not None:
                     result["latitude"] = result.pop("lat")
                 
+                logger.debug("Accuracy achieved:" + result["accuracy"])
+
                 # Initialize variable for limiting the publishing of updates 
                 last_publish_time = datetime.datetime.now()
                 # Limit the GPS updates to the configured value
