@@ -240,7 +240,7 @@ while True:
                 if (publish_3d_fix_only and mode == 3):
                     client.publish(mqtt_attr, json.dumps(result))
                     published_updates += 1 # Add one per publish for the summary log 
-                    logger.debug(f"Published: {result} to topic: {mqtt_attr}")
+                    logger.debug(f"Published: {result} to topic: {mqtt_attr} (3D-fix-only)")
                     last_published_time = datetime.datetime.now()
                 else :
                     # If not filtering on 3D fix, we publish all updates
