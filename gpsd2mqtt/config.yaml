@@ -23,11 +23,12 @@ options:
   mqtt_username: null
   mqtt_pw: null
   publish_3d_fix_only: true
-  publish_interval: int?
+  publish_interval: 10
 schema:
   device: device(subsystem=tty)
   baudrate: int?
   publish_3d_fix_only: bool?
+  publish_interval: int?
   summary_interval: int?
   mqtt_broker: str?
   mqtt_port: int?
