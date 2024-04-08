@@ -1,5 +1,8 @@
 # Changelog
 
+## [2024.4.1] - 2024-04-01
+ - Add option to only publish when good GPS fix is achieved, and made it default. Option called "3D Fix Only"
+
 ## [2024.4.0] - 2024-04-01
  - Reworked addon to listen for LWT messages from Home Assistant. This ensures that the device tracker gets discovered after reboots.
  - Changed the discovery message so it becomes a device under MQTT and shows in the devices dashboard (config/devices/dashboard)
