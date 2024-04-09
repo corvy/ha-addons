@@ -9,16 +9,14 @@ GPSD_SOCKET="-F /var/run/gpsd.sock"
 BITS="cs8"
 CONTROL="clocal"
 STOPBIT="-cstopb"
+ADDON_MQTT_USER=""
+ADDON_MQTT_PASSWORD=""
+
 
 # Check if mqtt username is set
-if bashio::config.is_empty 'mqtt' && bashio::var.has_value "$(bashio::services 'mqtt')"; then
-    if bashio::var.true "$(bashio::services 'mqtt' 'ssl')"; then
-        export ZIGBEE2MQTT_CONFIG_MQTT_SERVER="mqtts://$(bashio::services 'mqtt' 'host'):$(bashio::services 'mqtt' 'port')"
-    else
-        export ZIGBEE2MQTT_CONFIG_MQTT_SERVER="mqtt://$(bashio::services 'mqtt' 'host'):$(bashio::services 'mqtt' 'port')"
-    fi
-    export ZIGBEE2MQTT_CONFIG_MQTT_USER="$(bashio::services 'mqtt' 'username')"
-    export ZIGBEE2MQTT_CONFIG_MQTT_PASSWORD="$(bashio::services 'mqtt' 'password')"
+if bashio::config.is_empty 'mqtt_username' && bashio::var.has_value "$(bashio::services 'mqtt_username')"; then
+    ADDON_MQTT_USER="$(bashio::services 'mqtt' 'username')"
+    ADDON_MQTT_PASSWORD="$(bashio::services 'mqtt' 'password')"
 fi
 
 # Serial setup
@@ -62,4 +60,4 @@ echo "Starting GPSD with device \"${DEVICE}\"..."
 
 # Start python script to publish results from GPSD to MQTT
 echo "Starting MQTT Publisher ..."
-python /gpsd2mqtt.py
+python /gpsd2mqtt.py ${ADDON_MQTT_USER} ${ADDON_MQTT_PASSWORD}
