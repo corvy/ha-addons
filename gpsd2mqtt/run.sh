@@ -9,11 +9,11 @@ GPSD_SOCKET="-F /var/run/gpsd.sock"
 BITS="cs8"
 CONTROL="clocal"
 STOPBIT="-cstopb"
-ADDON_MQTT_USER=""
-ADDON_MQTT_PASSWORD=""
+MQTT_USER=$(bashio::config 'mqtt_username')
+MQTT_PASSWORD=$(bashio::config 'mqtt_pw')
 
 
-# Check if mqtt username is set
+# Check if mqtt username is set, if not get it from Home Assistant via bashio::services
 if bashio::config.is_empty 'mqtt_username' && bashio::var.has_value "$(bashio::services 'mqtt')"; then
     ADDON_MQTT_USER="$(bashio::services 'mqtt' 'username')"
     ADDON_MQTT_PASSWORD="$(bashio::services 'mqtt' 'password')"
@@ -59,5 +59,5 @@ echo "Starting GPSD with device \"${DEVICE}\"..."
 #/usr/bin/gpsctl
 
 # Start python script to publish results from GPSD to MQTT
-echo "Starting MQTT Publisher with credentials \"${ADDON_MQTT_USER}\" \"${ADDON_MQTT_PASSWORD}\" ... "
+echo "Starting MQTT Publisher with credentials ${ADDON_MQTT_USER} ${ADDON_MQTT_PASSWORD} ... "
 python /gpsd2mqtt.py ${ADDON_MQTT_USER} ${ADDON_MQTT_PASSWORD}
