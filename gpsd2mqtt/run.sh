@@ -14,7 +14,7 @@ ADDON_MQTT_PASSWORD=""
 
 
 # Check if mqtt username is set
-if bashio::config.is_empty 'mqtt_username' && bashio::var.has_value "$(bashio::services 'mqtt_username')"; then
+if bashio::config.is_empty 'mqtt_username' && bashio::var.has_value "$(bashio::services 'mqtt')"; then
     ADDON_MQTT_USER="$(bashio::services 'mqtt' 'username')"
     ADDON_MQTT_PASSWORD="$(bashio::services 'mqtt' 'password')"
 fi
