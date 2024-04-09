@@ -59,5 +59,5 @@ echo "Starting GPSD with device \"${DEVICE}\"..."
 #/usr/bin/gpsctl
 
 # Start python script to publish results from GPSD to MQTT
-echo "Starting MQTT Publisher ..."
+echo "Starting MQTT Publisher with credentials \"${ADDON_MQTT_USER}\" \"${ADDON_MQTT_PASSWORD}\" ... "
 python /gpsd2mqtt.py ${ADDON_MQTT_USER} ${ADDON_MQTT_PASSWORD}
