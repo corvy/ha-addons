@@ -40,8 +40,8 @@ device = data.get("device")
 baudrate = data.get("baudrate") or 9600
 mqtt_broker = data.get("mqtt_broker") or "core-mosquitto"
 mqtt_port = data.get("mqtt_port") or 1883
-mqtt_username = data.get("mqtt_username")
-mqtt_pw = data.get("mqtt_pw")
+mqtt_username = data.get("mqtt_username") or "addons"
+mqtt_pw = data.get("mqtt_pw") or ""
 # Default confiuration options, should normally not be changed
 mqtt_config_deprecated = ("homeassistant/device_tracker/gpsd/config") # Only needed to cleanup - can be removed in the future
 mqtt_config = data.get("mqtt_config", "homeassistant/device_tracker/gpsd2mqtt/" + unique_identifier + "/config")
