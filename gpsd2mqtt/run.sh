@@ -10,6 +10,17 @@ BITS="cs8"
 CONTROL="clocal"
 STOPBIT="-cstopb"
 
+# Check if mqtt username is set
+if bashio::config.is_empty 'mqtt' && bashio::var.has_value "$(bashio::services 'mqtt')"; then
+    if bashio::var.true "$(bashio::services 'mqtt' 'ssl')"; then
+        export ZIGBEE2MQTT_CONFIG_MQTT_SERVER="mqtts://$(bashio::services 'mqtt' 'host'):$(bashio::services 'mqtt' 'port')"
+    else
+        export ZIGBEE2MQTT_CONFIG_MQTT_SERVER="mqtt://$(bashio::services 'mqtt' 'host'):$(bashio::services 'mqtt' 'port')"
+    fi
+    export ZIGBEE2MQTT_CONFIG_MQTT_USER="$(bashio::services 'mqtt' 'username')"
+    export ZIGBEE2MQTT_CONFIG_MQTT_PASSWORD="$(bashio::services 'mqtt' 'password')"
+fi
+
 # Serial setup
 #
 # For serial interfaces, options such as low_latency are recommended
