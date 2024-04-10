@@ -180,21 +180,34 @@ signal.signal(signal.SIGINT, signal_handler)
 # "state_topic": "{mqtt_state}", (Removed from json_config)
 json_config = f'''
 {{
-    "unique_id": "{unique_identifier}",
-    "name": "Location",
-    "platform": "mqtt",
-    "payload_home": "home",
-    "payload_not_home": "not_home",
-    "payload_reset": "check_zone",
-    "object_id": "gps_location",
-    "icon":"mdi:map-marker",
-    "json_attributes_topic": "{mqtt_attr}",
-    "device": {{
-        "name": "GPSD Service",
-        "identifiers": "gpsd2mqtt_{unique_identifier}", 
-        "configuration_url": "https://github.com/corvy/ha-addons/tree/main/gpsd2mqtt",
-        "model": "gpsd2MQTT",
-        "manufacturer": "GPSD and @sbarmen"
+    "device_tracker": {{
+        "unique_id": "{unique_identifier}",
+        "name": "Location",
+        "platform": "mqtt",
+        "payload_home": "home",
+        "payload_not_home": "not_home",
+        "payload_reset": "check_zone",
+        "object_id": "gps_location",
+        "icon":"mdi:map-marker",
+        "json_attributes_topic": "{mqtt_attr}",
+        "device": {{
+            "name": "GPSD Service",
+            "identifiers": "gpsd2mqtt_{unique_identifier}", 
+            "configuration_url": "https://github.com/corvy/ha-addons/tree/main/gpsd2mqtt",
+            "model": "gpsd2MQTT",
+            "manufacturer": "GPSD and @sbarmen"
+        }}
+    }},
+    "sensor": {{
+        "unique_id": "{unique_identifier}_sky",
+        "name": "GPS Sky Data",
+        "platform": "mqtt",
+        "icon":"mdi:weather-partly-cloudy",
+        "json_attributes_topic": "{mqtt_sky_attr}",
+        "device": {{
+            "name": "GPSD Service",
+            "identifiers": "gpsd2mqtt_{unique_identifier}"
+        }}
     }}
 }}
 '''
@@ -203,26 +216,6 @@ client.publish(mqtt_config, json_config) # Publish the discovery message
 
 logger.info(f"Published MQTT discovery message to topic: {mqtt_config}")
 logger.debug(f"Published {json_config} discovery message to topic: {mqtt_config}")
-
-# Create the device using the Home Assistant discovery protocol and set the state not_home
-# "state_topic": "{mqtt_state}", (Removed from json_config)
-json_config_sky = f'''
-{{
-    "unique_id": "{unique_identifier}_sky",
-    "name": "GPS Sky Data",
-    "platform": "mqtt",
-    "icon":"mdi:weather-partly-cloudy",
-    "json_attributes_topic": "{mqtt_sky_attr}",
-    "device": {{
-        "name": "GPSD Service",
-        "identifiers": "gpsd2mqtt_{unique_identifier}"
-    }}
-}}
-'''
-client.publish(mqtt_sky_config, json_config_sky) # Publish the discovery message for SKY data
-
-logger.info(f"Published MQTT discovery message for SKY data to topic: {mqtt_sky_config}")
-logger.debug(f"Published {json_config_sky} discovery message for SKY data to topic: {mqtt_sky_config}")
 
 
 # Main program loop to update the device location from GPS
