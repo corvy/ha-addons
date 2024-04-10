@@ -11,7 +11,7 @@ configuration:
     description: If not configured it will default to 1883.
   mqtt_username:
     name: MQTT Username
-    description: Leave empty to use integrated authentication for Mosquitto MQTT. Change it only if you need to. 
+    description: Leave empty to use integrated authentication. Change it only if you need to. 
   mqtt_pw:
     name: MQTT Password
     description: Only used if you use a custom username, disregarded if using integrated authentication. 
@@ -29,7 +29,7 @@ configuration:
     description: Serial device baudrate, defaults to 9600
   summary_interval:
     name: Print Summary Interval in seconds
-    description: How often should the add-on print a summary to the logs. Defaulting to 120 seconds. 
+    description: How often should the add-on print a summary to the logs. Defaults to 120 seconds. 
   publish_interval:
     name: Update Interval in seconds
     description: Minimum delay between publishing of updated GPS position to the device tracker. Defaults to 10 seconds. Set to 0 to disable and publish all updates. 
