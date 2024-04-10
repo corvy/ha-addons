@@ -211,10 +211,6 @@ json_config_sky = f'''
     "unique_id": "{unique_identifier}_sky",
     "name": "GPS Sky Data",
     "platform": "mqtt",
-    "payload_home": "home",
-    "payload_not_home": "not_home",
-    "payload_reset": "check_zone",
-    "object_id": "gps_sky_data",
     "icon":"mdi:weather-partly-cloudy",
     "json_attributes_topic": "{mqtt_sky_attr}",
     "device": {{
