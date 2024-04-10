@@ -46,11 +46,11 @@ mqtt_pw = sys.argv[2] or data.get("mqtt_pw")
 # Default confiuration options, should normally not be changed
 mqtt_config_deprecated = ("homeassistant/device_tracker/gpsd/config") # Only needed to cleanup - can be removed in the future
 mqtt_config = data.get("mqtt_config", "homeassistant/device_tracker/gpsd2mqtt/" + unique_identifier + "/config")
-mqtt_state = data.get("mqtt_state", "gpsd2mqtt/device_tracker/" + unique_identifier + "/state")
-mqtt_attr = data.get("mqtt_attr", "gpsd2mqtt/device_tracker/" + unique_identifier + "/attribute")
-mqtt_sky_config = data.get("mqtt_config", "homeassistant/sensor/gpsd2mqtt/" + unique_identifier + "/config")
-mqtt_sky_state = data.get("mqtt_state", "gpsd2mqtt/sensor/" + unique_identifier + "/state")
-mqtt_sky_attr = data.get("mqtt_attr", "gpsd2mqtt/sensor/" + unique_identifier + "/attribute")
+mqtt_state = data.get("mqtt_state", "gpsd2mqtt/" + unique_identifier + "/state")
+mqtt_attr = data.get("mqtt_attr", "gpsd2mqtt/" + unique_identifier + "/attribute")
+mqtt_sky_config = data.get("mqtt_config", "homeassistant/sensor/gpsd2mqtt/" + unique_identifier + "_sky/config")
+mqtt_sky_state = data.get("mqtt_state", "gpsd2mqtt/" + unique_identifier + "_sky/state")
+mqtt_sky_attr = data.get("mqtt_attr", "gpsd2mqtt/" + unique_identifier + "_sky/attribute")
 publish_3d_fix_only = data.get("publish_3d_fix_only", True)  # Default to True to reduce "unknown" positions
 min_n_satellites = data.get("min_n_satellites") or 0 # Default to 0 (all results) 
 debug = data.get("debug", False)
@@ -219,9 +219,9 @@ json_config_sky = f'''
     "json_attributes_topic": "{mqtt_sky_attr}",
     "device": {{
         "name": "GPSD Sky Data",
-        "identifiers": "gpsd2mqtt_{unique_identifier}_sky", 
+        "identifiers": "gpsd2mqtt_{unique_identifier}", 
         "configuration_url": "https://github.com/corvy/ha-addons/tree/main/gpsd2mqtt",
-        "model": "gpsd2MQTT Sky Data",
+        "model": "gpsd2MQTT",
         "manufacturer": "GPSD and @sbarmen"
     }}
 }}
