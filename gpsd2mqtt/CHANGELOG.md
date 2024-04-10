@@ -1,13 +1,20 @@
 # Changelog
 
+## [2024.4.1] - 2024-04-10
+ - NEW OPTION: No username or password required for MQTT if using Mosquitto on Home Assistant. If you use custom username / password this can be deleted if the previous is true
+ - NEW OPTION: Add option to only publish when good GPS fix is achieved, and made it default. Option called "3D Fix Only". Turn it off if you like to get all updates
+ - Fix the configurable publish interval setting. This is 10 seconds default, can be changed in options, set to 0 to publish all updates. Did not work in previous releases
+ - Many small fixes and improvements
+
+
 ## [2024.4.0] - 2024-04-01
- - Reworked addon to listen for LWT messages from Home Assistant. This ensures that the device tracker gets discovered after reboots.
+ - Reworked addon to listen for LWT messages from Home Assistant. This ensures that the device tracker gets discovered after reboots
  - Changed the discovery message so it becomes a device under MQTT and shows in the devices dashboard (config/devices/dashboard)
  - Added unique ID to discovery message, enabling the user to edit the device
  - Added automation example to github readme
 
 ## [2024.2.1] - 2024-02-18
- - Fixing bug, not updating MQTT in 2024.2.0.
+ - Fixing bug, not updating MQTT in 2024.2.0
 
 ## [2024.2.0] - 2024-02-18
  - Setting baudrate directly to GPSD binary option, defaults to 9600 without it
@@ -36,10 +43,10 @@
 ### Changed
 
 - Changes done to state. It no longer posts the GPS accuracy as state, but should use the zone settings from Home Assistant (home, not_home)
-- Changes to logging, now debug and info should be more visible in the logs. 
-- Made a summary message in the log so you can get some information withouth overloading the log with info. 
-- Configurable options to control how often updates are published to MQTT and also how often to get the summary in the log. Se options under optional config options (Publish Interval and Print Summary).
-- Changed the versioning numbering to align with Home Assistant versioning.  
+- Changes to logging, now debug and info should be more visible in the logs
+- Made a summary message in the log so you can get some information withouth overloading the log with info
+- Configurable options to control how often updates are published to MQTT and also how often to get the summary in the log. Se options under optional config options (Publish Interval and Print Summary)
+- Changed the versioning numbering to align with Home Assistant versioning
 
 ## [0.0.108] - 2023-06-07
 
@@ -52,8 +59,8 @@
 
 ### Changed
 
-- Breaking change in attributes, renamed lat to latitude, lon to longitude and alt to altitude. This change done to get location to work in Home Assistant for the device_tracker. 
-- Changes done to logging. If debug is off then the script will publish a log every X seonds (120s this release) to not clutter the logs more than necessary.
+- Breaking change in attributes, renamed lat to latitude, lon to longitude and alt to altitude. This change done to get location to work in Home Assistant for the device_tracker
+- Changes done to logging. If debug is off then the script will publish a log every X seonds (120s this release) to not clutter the logs more than necessary
 
 ## [0.0.106] - 2023-06-01
 

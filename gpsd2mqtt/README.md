@@ -6,7 +6,9 @@ This addon will run gpsd and serve the data to MQTT and show a device tracker de
 
 Remember to install Mosquitto or another broker before setting up this addon.
 
-Installation requires you to set up a username and password to publish to MQTT. Also you must select the serial device for GPSD in the configuration.
+**NEW!** If using Mosquitto on Home Assistant, the addon will use integrated authentication to log in. Normally you should not need to configure username or password for MQTT. If you have set up a custom MQTT broker, you must manually configure username and password (and potentially more).
+
+Also you must select the serial device for GPSD in the configuration.
 
 The configuration is done via the addon GUI inside Home Assistant after installation.
 

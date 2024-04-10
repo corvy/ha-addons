@@ -2,13 +2,12 @@ import json
 import datetime
 import logging
 import time
-import serial
 import platform
 import hashlib
 import signal
 import sys
-import paho.mqtt.client as mqtt
-from gpsdclient import GPSDClient
+import paho.mqtt.client as mqtt # type: ignore
+from gpsdclient import GPSDClient # type: ignore
 
 # To make sure Home Assistant gets a uniique identifier, we use this section to crate a simple 8 character UID
 def get_unique_identifier():
@@ -41,20 +40,22 @@ device = data.get("device")
 baudrate = data.get("baudrate") or 9600
 mqtt_broker = data.get("mqtt_broker") or "core-mosquitto"
 mqtt_port = data.get("mqtt_port") or 1883
-mqtt_username = data.get("mqtt_username") or "addons"
-mqtt_pw = data.get("mqtt_pw") or ""
+mqtt_username = sys.argv[1] or data.get("mqtt_username")
+# mqtt_username = data.get("mqtt_username") or "addons"
+mqtt_pw = sys.argv[2] or data.get("mqtt_pw")
 # Default confiuration options, should normally not be changed
 mqtt_config_deprecated = ("homeassistant/device_tracker/gpsd/config") # Only needed to cleanup - can be removed in the future
 mqtt_config = data.get("mqtt_config", "homeassistant/device_tracker/gpsd2mqtt/" + unique_identifier + "/config")
 mqtt_state = data.get("mqtt_state", "gpsd2mqtt/" + unique_identifier + "/state")
 mqtt_attr = data.get("mqtt_attr", "gpsd2mqtt/" + unique_identifier + "/attribute")
+publish_3d_fix_only = data.get("publish_3d_fix_only", True)  # Default to True to reduce "unknown" positions
 debug = data.get("debug", False)
 # Variables used to publish updates to the
 summary_interval = data.get("summary_interval") or 120 # Interval in seconds
-publish_interval = data.get("publish_interval") or 10
+publish_interval = data.get("publish_interval") or 10 # Interval in seconds
 published_updates = 0
 last_summary_time = datetime.datetime.now()
-last_published_time = datetime.datetime.now()
+last_publish_time = datetime.datetime.now()
 result = None
 
 # Define parameters for exponential backoff
@@ -172,9 +173,9 @@ signal.signal(signal.SIGTERM, signal_handler)
 signal.signal(signal.SIGINT, signal_handler)
 
 # Create the device using the Home Assistant discovery protocol and set the state not_home
+#     "state_topic": "{mqtt_state}", (Removed from json_config)
 json_config = f'''
 {{
-    "state_topic": "{mqtt_state}",
     "unique_id": "{unique_identifier}",
     "name": "Location",
     "platform": "mqtt",
@@ -196,7 +197,7 @@ json_config = f'''
 client.publish(mqtt_config_deprecated) # Empty config for deprecated device to cleanup
 client.publish(mqtt_config, json_config) # Publish the discovery message
 
-logger.info(f"Published MQTT discovery message to topic:" + mqtt_config)
+logger.info(f"Published MQTT discovery message to topic: {mqtt_config}")
 logger.debug(f"Published {json_config} discovery message to topic: {mqtt_config}")
 
 # Main program loop to update the device location from GPS
@@ -235,16 +236,24 @@ while True:
                 if "lat" in result and result["lat"] is not None:
                     result["latitude"] = result.pop("lat")
 
-                ## Publish the GPS accurancy to the state_topic
-                # client.publish(mqtt_state, accuracy)
-                
-                # Publish the JSON message to the MQTT broker
-                if (datetime.datetime.now() - last_published_time).total_seconds() >= publish_interval:
-                    client.publish(mqtt_attr, json.dumps(result))
-                    published_updates += 1 # Add one per publish for the summary log 
-                    logger.debug(f"Published: {result} to topic: {mqtt_attr}")
-                    last_published_time = datetime.datetime.now()
+                # Limit the GPS updates to the configured value, or publish all if disabled (0)
+                if (datetime.datetime.now() - last_publish_time).total_seconds() >= publish_interval or publish_interval == 0:
 
+                    logger.debug("Accuracy achieved:" + result["accuracy"])
+                    # Publish the JSON message to the MQTT broker only if mode is 3D fix
+                    if (publish_3d_fix_only and mode == 3):
+                        client.publish(mqtt_attr, json.dumps(result))
+                        published_updates += 1 # Add one per publish for the summary log 
+                        logger.debug(f"Published: {result} to topic: {mqtt_attr} (3D-fix-only)")
+                        
+                    elif not publish_3d_fix_only :
+                        # If not filtering on 3D fix, we publish all updates
+                        client.publish(mqtt_attr, json.dumps(result))
+                        published_updates += 1
+                        logger.debug(f"Published: {result} to topic: {mqtt_attr}")
+
+                    last_publish_time = datetime.datetime.now()
+                        
             # Check if a summary should be printed
             if (datetime.datetime.now() - last_summary_time).total_seconds() >= summary_interval:
                 # Calculate the time elapsed since the last summary
