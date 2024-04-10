@@ -18,7 +18,7 @@ HA_AUTH=false
 if bashio::config.is_empty 'mqtt_username' && bashio::var.has_value "$(bashio::services 'mqtt')"; then
     MQTT_USER="$(bashio::services 'mqtt' 'username')"
     MQTT_PASSWORD="$(bashio::services 'mqtt' 'password')"
-    HA_AUT=true
+    HA_AUTH=true
 elif bashio::config.is_empty 'mqtt_username'; then
     echo "Not able to use HA integrated authentication, and no credentials manually configured. "
     echo "Please update configuration with your own credentials to continue."
@@ -65,7 +65,7 @@ echo "Starting GPSD with device \"${DEVICE}\"..."
 #/usr/bin/gpsctl
 
 # Start python script to publish results from GPSD to MQTT
-if $HA_AUTH = "true" : then
+if [ $HA_AUTH = true ]; then
     echo "Starting MQTT Publisher with HA integrated credentials ... "
     else
     echo "Starting MQTT Publisher with username ${MQTT_USER} ... "
