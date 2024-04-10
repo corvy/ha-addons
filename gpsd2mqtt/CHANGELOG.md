@@ -1,9 +1,10 @@
 # Changelog
 
-## [2024.4.1] - 2024-04-01
+## [2024.4.1] - 2024-04-10
  - NEW OPTION: No username or password required for MQTT if using Mosquitto on Home Assistant. If you use custom username / password this can be deleted if the previous is true
  - NEW OPTION: Add option to only publish when good GPS fix is achieved, and made it default. Option called "3D Fix Only". Turn it off if you like to get all updates. 
- - Fix the configurable publish interval setting. This is 10 seconds default, can be changed in options, set to 0 to publish all updates. Did not work in previous releases
+ - Fix the configurable publish interval setting. This is 10 seconds default, can be changed in options, set to 0 to publish all updates. Did not work in previous releases.
+ - Many small fixes and improvements.
 
 
 ## [2024.4.0] - 2024-04-01
