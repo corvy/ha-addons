@@ -65,7 +65,7 @@ echo "Starting GPSD with device \"${DEVICE}\"..."
 #/usr/bin/gpsctl
 
 # Start python script to publish results from GPSD to MQTT
-if $HA_AUTH: then
+if $HA_AUTH = "true" : then
     echo "Starting MQTT Publisher with HA integrated credentials ... "
     else
     echo "Starting MQTT Publisher with username ${MQTT_USER} ... "
