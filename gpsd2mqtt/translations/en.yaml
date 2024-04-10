@@ -5,16 +5,16 @@ configuration:
     description: Serial device providing GPS data, must be supported by GPSD
   mqtt_broker:
     name: MQTT Server IP or Hostname
-    description: If not configured it will default to use the internal Mosquitto broker, addon must be installed.
+    description: If not configured it will default to use the internal MQTT broker, addon must be installed.
   mqtt_port:
     name: MQTT Server port
     description: If not configured it will default to 1883.
   mqtt_username:
     name: MQTT Username
-    description: Default "addons" will use internal authentication for Mosquitto MQTT. Change it only if you need to. 
+    description: Leave empty to use integrated authentication for Mosquitto MQTT. Change it only if you need to. 
   mqtt_pw:
     name: MQTT Password
-    description: If not configured it will default to use internal addon auth for Mosquitto add-on.
+    description: Only used if you use a custom username, disregarded if using integrated authentication. 
   mqtt_state:
     name: MQTT State Topic
     description: If you need to change topic it can be done here. WARNING, this might break functionality so please leave at deafult unless you know exactly what you are doing. 
