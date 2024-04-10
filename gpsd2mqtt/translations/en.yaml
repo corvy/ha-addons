@@ -32,6 +32,6 @@ configuration:
     description: How often should the add-on print a summary to the logs. Defaulting to 120 seconds. 
   publish_interval:
     name: Update Interval in seconds
-    description: Minimum delay between publishing of updated GPS position to the device tracker. Defaults to 10 seconds. 
+    description: Minimum delay between publishing of updated GPS position to the device tracker. Defaults to 10 seconds. Set to 0 to disable and publish all updates. 
 network:
   2947/tcp: GPSD Port (default 2947). Disabled by default as it is not needed for MQTT, only if you want to use the GPSD integration, or another use-case where direct connection to GPSD is needed. 

@@ -21,7 +21,6 @@ services:
 options:
   device: null
   publish_3d_fix_only: true
-  publish_interval: 10
 schema:
   device: device(subsystem=tty)
   baudrate: int?

@@ -2,7 +2,7 @@
 
 ## [2024.4.1] - 2024-04-01
  - Add option to only publish when good GPS fix is achieved, and made it default. Option called "3D Fix Only"
- - Fix the configurable publish interval setting. Made the option mandatory with a default of 10 seconds. 
+ - Fix the configurable publish interval setting. This is 10 seconds default, can be changed in options, set to 0 to publish all updates. 
  - Change default MQTT username to "addons" - this will enable the use of internal MQTT authentication for Mosquitto broker.
 
 ## [2024.4.0] - 2024-04-01

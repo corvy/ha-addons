@@ -52,7 +52,7 @@ publish_3d_fix_only = data.get("publish_3d_fix_only", True)  # Default to True t
 debug = data.get("debug", False)
 # Variables used to publish updates to the
 summary_interval = data.get("summary_interval") or 120 # Interval in seconds
-publish_interval = data.get("publish_interval") or 10
+publish_interval = data.get("publish_interval") or 10 # Interval in seconds
 published_updates = 0
 last_summary_time = datetime.datetime.now()
 last_publish_time = datetime.datetime.now()
@@ -236,8 +236,8 @@ while True:
                 if "lat" in result and result["lat"] is not None:
                     result["latitude"] = result.pop("lat")
 
-                # Limit the GPS updates to the configured value
-                if (datetime.datetime.now() - last_publish_time).total_seconds() >= publish_interval:
+                # Limit the GPS updates to the configured value, or publish all if disabled (0)
+                if (datetime.datetime.now() - last_publish_time).total_seconds() >= publish_interval or publish_interval == 0:
 
                     logger.debug("Accuracy achieved:" + result["accuracy"])
                     # Publish the JSON message to the MQTT broker only if mode is 3D fix
