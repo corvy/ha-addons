@@ -22,7 +22,7 @@ if bashio::config.is_empty 'mqtt_username' && bashio::var.has_value "$(bashio::s
 elif bashio::config.is_empty 'mqtt_username'; then
     echo "Not able to use HA integrated authentication, and no credentials manually configured. "
     echo "Please update configuration with your own credentials to continue."
-    exit
+    exit 1 # Exit the script as we will not be able to authenticate to MQTT
 fi
 
 # Serial setup
