@@ -6,8 +6,8 @@ import platform
 import hashlib
 import signal
 import sys
-import paho.mqtt.client as mqtt # type: ignore
-from gpsdclient import GPSDClient # type: ignore
+import paho.mqtt.client as mqtt 
+from gpsdclient import GPSDClient 
 
 # To make sure Home Assistant gets a uniique identifier, we use this section to crate a simple 8 character UID
 def get_unique_identifier():
@@ -214,6 +214,7 @@ while True:
 
         for raw_result in gps_client.json_stream():
             result = json.loads(raw_result)
+
             if result.get("class") == "TPV":
                 mode = result.get("mode")
                 if mode == 1:
@@ -235,6 +236,8 @@ while True:
                     result["longitude"] = result.pop("lon")
                 if "lat" in result and result["lat"] is not None:
                     result["latitude"] = result.pop("lat")
+
+            elif result.get("class") == "SKY":
 
                 # Limit the GPS updates to the configured value, or publish all if disabled (0)
                 if (datetime.datetime.now() - last_publish_time).total_seconds() >= publish_interval or publish_interval == 0:
