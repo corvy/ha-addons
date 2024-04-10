@@ -15,7 +15,7 @@ HA_AUTH=false
 
 
 # Check if mqtt username is set, if not get it from Home Assistant via bashio::services
-if bashio::config.is_empty 'mqtt_username' && bashio::var.has_value "$(bashio::services 'mqtt')"; then
+if bashio::config.is_empty 'mqtt_username' && bashio::var.has_value "$(bashio::services 'mqtt1')"; then
     MQTT_USER="$(bashio::services 'mqtt' 'username')"
     MQTT_PASSWORD="$(bashio::services 'mqtt' 'password')"
     HA_AUTH=true
