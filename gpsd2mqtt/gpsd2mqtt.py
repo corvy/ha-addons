@@ -48,7 +48,11 @@ mqtt_config_deprecated = ("homeassistant/device_tracker/gpsd/config") # Only nee
 mqtt_config = data.get("mqtt_config", "homeassistant/device_tracker/gpsd2mqtt/" + unique_identifier + "/config")
 mqtt_state = data.get("mqtt_state", "gpsd2mqtt/" + unique_identifier + "/state")
 mqtt_attr = data.get("mqtt_attr", "gpsd2mqtt/" + unique_identifier + "/attribute")
+mqtt_sky_config = data.get("mqtt_config", "homeassistant/sensor/gpsd2mqtt/" + unique_identifier + "/config")
+mqtt_sky_state = data.get("mqtt_state", "gpsd2mqtt/" + unique_identifier + "/state")
+mqtt_sky_attr = data.get("mqtt_attr", "gpsd2mqtt/" + unique_identifier + "/attribute")
 publish_3d_fix_only = data.get("publish_3d_fix_only", True)  # Default to True to reduce "unknown" positions
+min_n_satellites = data.get("min_n_satellites") or 0 # Default to 0 (all results) 
 debug = data.get("debug", False)
 # Variables used to publish updates to the
 summary_interval = data.get("summary_interval") or 120 # Interval in seconds
@@ -173,7 +177,7 @@ signal.signal(signal.SIGTERM, signal_handler)
 signal.signal(signal.SIGINT, signal_handler)
 
 # Create the device using the Home Assistant discovery protocol and set the state not_home
-#     "state_topic": "{mqtt_state}", (Removed from json_config)
+# "state_topic": "{mqtt_state}", (Removed from json_config)
 json_config = f'''
 {{
     "unique_id": "{unique_identifier}",
@@ -200,6 +204,34 @@ client.publish(mqtt_config, json_config) # Publish the discovery message
 logger.info(f"Published MQTT discovery message to topic: {mqtt_config}")
 logger.debug(f"Published {json_config} discovery message to topic: {mqtt_config}")
 
+# Create the device using the Home Assistant discovery protocol and set the state not_home
+# "state_topic": "{mqtt_state}", (Removed from json_config)
+json_config_sky = f'''
+{{
+    "unique_id": "{unique_identifier}_sky",
+    "name": "GPS Sky Data",
+    "platform": "mqtt",
+    "payload_home": "home",
+    "payload_not_home": "not_home",
+    "payload_reset": "check_zone",
+    "object_id": "gps_sky_data",
+    "icon":"mdi:weather-partly-cloudy",
+    "json_attributes_topic": "{mqtt_sky_attr}",
+    "device": {{
+        "name": "GPSD Sky Data",
+        "identifiers": "gpsd2mqtt_{unique_identifier}_sky", 
+        "configuration_url": "https://github.com/corvy/ha-addons/tree/main/gpsd2mqtt",
+        "model": "gpsd2MQTT Sky Data",
+        "manufacturer": "GPSD and @sbarmen"
+    }}
+}}
+'''
+client.publish(mqtt_sky_config, json_config_sky) # Publish the discovery message for SKY data
+
+logger.info(f"Published MQTT discovery message for SKY data to topic: {mqtt_sky_config}")
+logger.debug(f"Published {json_config_sky} discovery message for SKY data to topic: {mqtt_sky_config}")
+
+
 # Main program loop to update the device location from GPS
 while True:
 
@@ -215,7 +247,24 @@ while True:
         for raw_result in gps_client.json_stream():
             result = json.loads(raw_result)
 
-            if result.get("class") == "TPV":
+            if result.get("class") == "SKY":
+                n_satellites = result.get("nSat", 0)
+
+                # If the user has configured a minimum # of satellites needed for a "good position"
+                if n_satellites >= min_n_satellites:
+                    tpv_publish_flag = True
+                else:
+                    tpv_publish_flag = False
+                  
+                # Publish SKY data
+                if (datetime.datetime.now() - last_publish_time).total_seconds() >= publish_interval or publish_interval == 0:
+                    client.publish(mqtt_sky_attr, json.dumps(result))
+                    published_updates += 1 # Add one per publish for the summary log 
+                    logger.debug(f"Published SKY: {result} to topic: {mqtt_sky_attr}")
+                    last_publish_time = datetime.datetime.now()
+
+
+            if result.get("class") == "TPV" and tpv_publish_flag: # Check if it is TPV, and that we meet the minimum # of satellites
                 mode = result.get("mode")
                 if mode == 1:
                     accuracy = "No fix"
@@ -250,23 +299,11 @@ while True:
                     elif not publish_3d_fix_only :
                         # If not filtering on 3D fix, we publish all updates
                         client.publish(mqtt_attr, json.dumps(result))
-                        published_updates += 1
+                        published_updates += 1 # Add one per publish for the summary log 
                         logger.debug(f"Published TPV: {result} to topic: {mqtt_attr}")
 
                     last_publish_time = datetime.datetime.now()
             
-            elif result.get("class") == "SKY":
-                # Exclude the 'class' attribute from SKY data
-                sky_data = {key: value for key, value in result.items() if key != 'class'}
-
-                # Publish SKY data
-                if (datetime.datetime.now() - last_publish_time).total_seconds() >= publish_interval or publish_interval == 0:
-                    client.publish(mqtt_attr, json.dumps(sky_data))
-                    published_updates += 1
-                    logger.debug(f"Published SKY: {sky_data} to topic: {mqtt_attr}")
-                    last_publish_time = datetime.datetime.now()
-
-
             # Check if a summary should be printed
             if (datetime.datetime.now() - last_summary_time).total_seconds() >= summary_interval:
                 # Calculate the time elapsed since the last summary
