@@ -15,13 +15,13 @@ HA_AUTH=false
 
 
 # Check if mqtt username is set, if not get it from Home Assistant via bashio::services
-if bashio::config.is_empty 'mqtt_username' && bashio::var.has_value "$(bashio::services 'mqtt1')"; then
+if bashio::config.is_empty 'mqtt_username' && bashio::var.has_value "$(bashio::services 'mqtt')"; then
     MQTT_USER="$(bashio::services 'mqtt' 'username')"
     MQTT_PASSWORD="$(bashio::services 'mqtt' 'password')"
     HA_AUTH=true
 elif bashio::config.is_empty 'mqtt_username'; then
-    echo "Not able to use HA integrated authentication, and no credentials manually configured. "
-    echo "Please update configuration with your own credentials to continue."
+    echo "ERROR: Not able to use HA integrated authentication, and no credentials manually configured. "
+    echo "ERROR: Please update configuration with your own credentials to continue."
     exit 1 # Exit the script as we will not be able to authenticate to MQTT
 fi
 
@@ -66,7 +66,7 @@ echo "Starting GPSD with device \"${DEVICE}\"..."
 
 # Start python script to publish results from GPSD to MQTT
 if [ $HA_AUTH = true ]; then
-    echo "Starting MQTT Publisher with HA integrated credentials ... "
+    echo "Starting MQTT Publisher with integrated credentials ... "
     else
     echo "Starting MQTT Publisher with username ${MQTT_USER} ... "
 fi
