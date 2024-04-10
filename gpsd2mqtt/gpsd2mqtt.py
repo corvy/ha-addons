@@ -237,8 +237,6 @@ while True:
                 if "lat" in result and result["lat"] is not None:
                     result["latitude"] = result.pop("lat")
 
-            elif result.get("class") == "SKY":
-
                 # Limit the GPS updates to the configured value, or publish all if disabled (0)
                 if (datetime.datetime.now() - last_publish_time).total_seconds() >= publish_interval or publish_interval == 0:
 
@@ -247,16 +245,28 @@ while True:
                     if (publish_3d_fix_only and mode == 3):
                         client.publish(mqtt_attr, json.dumps(result))
                         published_updates += 1 # Add one per publish for the summary log 
-                        logger.debug(f"Published: {result} to topic: {mqtt_attr} (3D-fix-only)")
+                        logger.debug(f"Published TPV: {result} to topic: {mqtt_attr} (3D-fix-only)")
                         
                     elif not publish_3d_fix_only :
                         # If not filtering on 3D fix, we publish all updates
                         client.publish(mqtt_attr, json.dumps(result))
                         published_updates += 1
-                        logger.debug(f"Published: {result} to topic: {mqtt_attr}")
+                        logger.debug(f"Published TPV: {result} to topic: {mqtt_attr}")
 
                     last_publish_time = datetime.datetime.now()
-                        
+            
+            elif result.get("class") == "SKY":
+                # Exclude the 'class' attribute from SKY data
+                sky_data = {key: value for key, value in result.items() if key != 'class'}
+
+                # Publish SKY data
+                if (datetime.datetime.now() - last_publish_time).total_seconds() >= publish_interval or publish_interval == 0:
+                    client.publish(mqtt_attr, json.dumps(sky_data))
+                    published_updates += 1
+                    logger.debug(f"Published SKY: {sky_data} to topic: {mqtt_attr}")
+                    last_publish_time = datetime.datetime.now()
+
+
             # Check if a summary should be printed
             if (datetime.datetime.now() - last_summary_time).total_seconds() >= summary_interval:
                 # Calculate the time elapsed since the last summary
