@@ -218,11 +218,8 @@ json_config_sky = f'''
     "icon":"mdi:weather-partly-cloudy",
     "json_attributes_topic": "{mqtt_sky_attr}",
     "device": {{
-        "name": "GPSD Sky Data",
-        "identifiers": "gpsd2mqtt_{unique_identifier}", 
-        "configuration_url": "https://github.com/corvy/ha-addons/tree/main/gpsd2mqtt",
-        "model": "gpsd2MQTT",
-        "manufacturer": "GPSD and @sbarmen"
+        "name": "GPSD Service",
+        "identifiers": "gpsd2mqtt_{unique_identifier}"
     }}
 }}
 '''
