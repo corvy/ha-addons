@@ -197,20 +197,18 @@ json_config = f'''
         "model": "gpsd2MQTT",
         "manufacturer": "GPSD and @sbarmen"
     }}
+}},
+{{
+    "unique_id": "{unique_identifier}_sky",
+    "name": "GPS Sky Data",
+    "state_topic": "{mqtt_sky_state}",
+    "json_attributes_topic": "{mqtt_sky_attr}",
+    "device": {{
+        "name": "GPSD Service",
+        "identifiers": "gpsd2mqtt_{unique_identifier}"
+    }}
 }}
 '''
-
-#,
-#    "sensor": {{
-#        "unique_id": "{unique_identifier}_sky",
-#        "name": "GPS Sky Data",
-#        "state_topic": "{mqtt_sky_state}",
-#        "json_attributes_topic": "{mqtt_sky_attr}",
-#        "device": {{
-#            "name": "GPSD Service",
-#            "identifiers": "gpsd2mqtt_{unique_identifier}"
-#        }}
-#    }}
 
 client.publish(mqtt_config_deprecated) # Empty config for deprecated device to cleanup
 client.publish(mqtt_config, json_config) # Publish the discovery message
