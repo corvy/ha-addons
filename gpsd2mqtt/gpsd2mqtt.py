@@ -183,7 +183,6 @@ json_config = f'''
     "device_tracker": {{
         "unique_id": "{unique_identifier}",
         "name": "Location",
-        "state_topic": {mqtt_state},
         "platform": "mqtt",
         "payload_home": "home",
         "payload_not_home": "not_home",
