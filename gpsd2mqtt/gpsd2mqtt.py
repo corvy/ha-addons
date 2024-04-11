@@ -28,9 +28,6 @@ def get_unique_identifier():
     return truncated_identifier
 
 
-# Get a unique identifier for the MQTT configuration topic
-unique_identifier = get_unique_identifier()
-
 # Read the config options from the JSON file
 with open("/data/options.json", "r") as jsonfile:
     data = json.load(jsonfile)
@@ -44,13 +41,6 @@ mqtt_username = sys.argv[1] or data.get("mqtt_username")
 # mqtt_username = data.get("mqtt_username") or "addons"
 mqtt_pw = sys.argv[2] or data.get("mqtt_pw")
 # Default confiuration options, should normally not be changed
-mqtt_config_deprecated = ("homeassistant/device_tracker/gpsd/config") # Only needed to cleanup - can be removed in the future
-mqtt_config = data.get("mqtt_config", "homeassistant/device_tracker/gpsd2mqtt/" + unique_identifier + "/config")
-mqtt_state = data.get("mqtt_state", "gpsd2mqtt/" + unique_identifier + "/state")
-mqtt_attr = data.get("mqtt_attr", "gpsd2mqtt/" + unique_identifier + "/attribute")
-mqtt_sky_config = data.get("mqtt_config", "homeassistant/sensor/gpsd2mqtt/" + unique_identifier + "_sky/config")
-mqtt_sky_state = data.get("mqtt_state", "gpsd2mqtt/" + unique_identifier + "_sky/state")
-mqtt_sky_attr = data.get("mqtt_attr", "gpsd2mqtt/" + unique_identifier + "_sky/attribute")
 publish_3d_fix_only = data.get("publish_3d_fix_only", True)  # Default to True to reduce "unknown" positions
 min_n_satellites = data.get("min_n_satellites") or 0 # Default to 0 (all results) 
 debug = data.get("debug", False)
@@ -174,44 +164,64 @@ def signal_handler(sig, frame):
 
 # Register signal handler for SIGTERM and SIGINT
 signal.signal(signal.SIGTERM, signal_handler)
-signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGINT, signal_handler
+              
+def publish_json_configs():
+    unique_identifier = get_unique_identifier()
+    mqtt_config_deprecated = "homeassistant/device_tracker/gpsd/config"
+    mqtt_config = f"homeassistant/device_tracker/gpsd2mqtt/{unique_identifier}/config"
+    mqtt_state = f"gpsd2mqtt/{unique_identifier}/state"
+    mqtt_attr = f"gpsd2mqtt/{unique_identifier}/attribute"
+    mqtt_sky_config = f"homeassistant/sensor/gpsd2mqtt/{unique_identifier}_sky/config"
+    mqtt_sky_state = f"gpsd2mqtt/{unique_identifier}_sky/state"
+    mqtt_sky_attr = f"gpsd2mqtt/{unique_identifier}_sky/attribute"
 
-# Create the device using the Home Assistant discovery protocol and set the state not_home
-# "state_topic": "{mqtt_state}", (Removed from json_config)
-json_config = f'''
-{{
-    "unique_id": "{unique_identifier}",
-    "name": "Location",
-    "platform": "mqtt",
-    "state_topic": "{mqtt_state}",
-    "json_attributes_topic": "{mqtt_attr}",
-    "payload_home": "home",
-    "payload_not_home": "not_home",
-    "payload_reset": "check_zone",
-    "object_id": "gps_location",
-    "icon":"mdi:map-marker",
-    "device": {{
-        "name": "GPSD Service",
-        "identifiers": "gpsd2mqtt_{unique_identifier}", 
-        "configuration_url": "https://github.com/corvy/ha-addons/tree/main/gpsd2mqtt",
-        "model": "gpsd2MQTT",
-        "manufacturer": "GPSD and @sbarmen"
+    # Create the device using the Home Assistant discovery protocol and set the state not_home
+    # "state_topic": "{mqtt_state}", (Removed from json_config)
+    # Serialize JSON objects separately
+    json_config_device_tracker = f'''
+    {{
+        "unique_id": "{unique_identifier}",
+        "name": "Location",
+        "platform": "mqtt",
+        "state_topic": "{mqtt_state}",
+        "json_attributes_topic": "{mqtt_attr}",
+        "payload_home": "home",
+        "payload_not_home": "not_home",
+        "payload_reset": "check_zone",
+        "object_id": "gps_location",
+        "icon":"mdi:map-marker",
+        "device": {{
+            "name": "GPSD Service",
+            "identifiers": "gpsd2mqtt_{unique_identifier}", 
+            "configuration_url": "https://github.com/corvy/ha-addons/tree/main/gpsd2mqtt",
+            "model": "gpsd2MQTT",
+            "manufacturer": "GPSD and @sbarmen"
+        }}
     }}
-}},
-{{
-    "unique_id": "{unique_identifier}_sky",
-    "name": "GPS Sky Data",
-    "state_topic": "{mqtt_sky_state}",
-    "json_attributes_topic": "{mqtt_sky_attr}",
-    "device": {{
-        "name": "GPSD Service",
-        "identifiers": "gpsd2mqtt_{unique_identifier}"
-    }}
-}}
-'''
+    '''
 
-client.publish(mqtt_config_deprecated) # Empty config for deprecated device to cleanup
-client.publish(mqtt_config, json_config) # Publish the discovery message
+    json_config_sensor = f'''
+    {{
+        "unique_id": "{unique_identifier}_sky",
+        "name": "GPS Sky Data",
+        "state_topic": "{mqtt_sky_state}",
+        "json_attributes_topic": "{mqtt_sky_attr}",
+        "device": {{
+            "name": "GPSD Service",
+            "identifiers": "gpsd2mqtt_{unique_identifier}"
+        }}
+    }}
+    '''
+
+    client.publish(mqtt_config_deprecated) # Empty config for deprecated device to cleanup
+    client.publish(mqtt_config, json_config_device_tracker) # Publish the device tracker discovery message
+    client.publish(mqtt_sky_config, json_config_sensor) # Publish the sensor discovery message
+
+publish_json_configs()
+
+# Publish the serialized JSON objects
+
 
 logger.info(f"Published MQTT discovery message to topic: {mqtt_config}")
 logger.debug(f"Published {json_config} discovery message to topic: {mqtt_config}")
