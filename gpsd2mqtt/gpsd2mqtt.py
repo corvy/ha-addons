@@ -180,37 +180,38 @@ signal.signal(signal.SIGINT, signal_handler)
 # "state_topic": "{mqtt_state}", (Removed from json_config)
 json_config = f'''
 {{
-    "device_tracker": {{
-        "unique_id": "{unique_identifier}",
-        "name": "Location",
-        "platform": "mqtt",
-        "state_topic": "{mqtt_state}",
-        "json_attributes_topic": "{mqtt_attr}",
-        "payload_home": "home",
-        "payload_not_home": "not_home",
-        "payload_reset": "check_zone",
-        "object_id": "gps_location",
-        "icon":"mdi:map-marker",
-        "device": {{
-            "name": "GPSD Service",
-            "identifiers": "gpsd2mqtt_{unique_identifier}", 
-            "configuration_url": "https://github.com/corvy/ha-addons/tree/main/gpsd2mqtt",
-            "model": "gpsd2MQTT",
-            "manufacturer": "GPSD and @sbarmen"
-        }}
-    }},
-    "sensor": {{
-        "unique_id": "{unique_identifier}_sky",
-        "name": "GPS Sky Data",
-        "state_topic": "{mqtt_sky_state}",
-        "json_attributes_topic": "{mqtt_sky_attr}",
-        "device": {{
-            "name": "GPSD Service",
-            "identifiers": "gpsd2mqtt_{unique_identifier}"
-        }}
+    "unique_id": "{unique_identifier}",
+    "name": "Location",
+    "platform": "mqtt",
+    "state_topic": "{mqtt_state}",
+    "json_attributes_topic": "{mqtt_attr}",
+    "payload_home": "home",
+    "payload_not_home": "not_home",
+    "payload_reset": "check_zone",
+    "object_id": "gps_location",
+    "icon":"mdi:map-marker",
+    "device": {{
+        "name": "GPSD Service",
+        "identifiers": "gpsd2mqtt_{unique_identifier}", 
+        "configuration_url": "https://github.com/corvy/ha-addons/tree/main/gpsd2mqtt",
+        "model": "gpsd2MQTT",
+        "manufacturer": "GPSD and @sbarmen"
     }}
 }}
 '''
+
+#,
+#    "sensor": {{
+#        "unique_id": "{unique_identifier}_sky",
+#        "name": "GPS Sky Data",
+#        "state_topic": "{mqtt_sky_state}",
+#        "json_attributes_topic": "{mqtt_sky_attr}",
+#        "device": {{
+#            "name": "GPSD Service",
+#            "identifiers": "gpsd2mqtt_{unique_identifier}"
+#        }}
+#    }}
+
 client.publish(mqtt_config_deprecated) # Empty config for deprecated device to cleanup
 client.publish(mqtt_config, json_config) # Publish the discovery message
 
