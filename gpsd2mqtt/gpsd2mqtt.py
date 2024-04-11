@@ -184,12 +184,13 @@ json_config = f'''
         "unique_id": "{unique_identifier}",
         "name": "Location",
         "platform": "mqtt",
+        "state_topic": "{mqtt_state}",
+        "json_attributes_topic": "{mqtt_attr}",
         "payload_home": "home",
         "payload_not_home": "not_home",
         "payload_reset": "check_zone",
         "object_id": "gps_location",
         "icon":"mdi:map-marker",
-        "json_attributes_topic": "{mqtt_attr}",
         "device": {{
             "name": "GPSD Service",
             "identifiers": "gpsd2mqtt_{unique_identifier}", 
@@ -201,6 +202,7 @@ json_config = f'''
     "sensor": {{
         "unique_id": "{unique_identifier}_sky",
         "name": "GPS Sky Data",
+        "state_topic": "{mqtt_sky_state}",
         "json_attributes_topic": "{mqtt_sky_attr}",
         "device": {{
             "name": "GPSD Service",
