@@ -242,6 +242,9 @@ while True:
                     tpv_publish_flag = True
                 else:
                     tpv_publish_flag = False
+
+                #### REMOVE REMOVE REMOVE
+                tpv_publish_flag = True    
                   
                 # Publish SKY data
                 if (datetime.datetime.now() - last_publish_time).total_seconds() >= publish_interval or publish_interval == 0:
