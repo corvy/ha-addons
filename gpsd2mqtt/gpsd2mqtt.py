@@ -6,8 +6,8 @@ import platform
 import hashlib
 import signal
 import sys
-import paho.mqtt.client as mqtt 
-from gpsdclient import GPSDClient 
+import paho.mqtt.client as mqtt  # type: ignore
+from gpsdclient import GPSDClient  # type: ignore
 
 # To make sure Home Assistant gets a uniique identifier, we use this section to crate a simple 8 character UID
 def get_unique_identifier():
@@ -183,6 +183,7 @@ json_config = f'''
     "device_tracker": {{
         "unique_id": "{unique_identifier}",
         "name": "Location",
+        "state_topic": {mqtt_state},
         "platform": "mqtt",
         "payload_home": "home",
         "payload_not_home": "not_home",
@@ -201,8 +202,6 @@ json_config = f'''
     "sensor": {{
         "unique_id": "{unique_identifier}_sky",
         "name": "GPS Sky Data",
-        "platform": "mqtt",
-        "icon":"mdi:weather-partly-cloudy",
         "json_attributes_topic": "{mqtt_sky_attr}",
         "device": {{
             "name": "GPSD Service",
