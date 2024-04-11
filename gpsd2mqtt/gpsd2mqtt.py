@@ -164,8 +164,8 @@ def signal_handler(sig, frame):
 
 # Register signal handler for SIGTERM and SIGINT
 signal.signal(signal.SIGTERM, signal_handler)
-signal.signal(signal.SIGINT, signal_handler
-              
+signal.signal(signal.SIGINT, signal_handler)
+
 def publish_json_configs():
     unique_identifier = get_unique_identifier()
     mqtt_config_deprecated = "homeassistant/device_tracker/gpsd/config"
