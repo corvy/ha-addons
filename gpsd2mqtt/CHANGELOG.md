@@ -1,8 +1,8 @@
 # Changelog
 
 ## [2024.4.2] - 2024-04-16
- - Added option to configure required number of satellites to establish the position. 3D fix is 3 satellites, but sometimes you need a more accurate position rather than frequent updates. Setting this to 5, or even 6 or 7 will greatly increase the accuracy of the position reported to device_tracker. Note that the updated position frequency could be reduced if the GPS sensor has bad coverage
- - Introduced a new sensor for Sky data. Under Settings -> Integrations -> Entities (MQTT) -> GPSD Service. This device shows the Sky coverage data as attributes. The sensor is called sensor.gpsd_service_sky_data and the state is the current number of satellites used to establish position. Especially the first updates will take a bit longer before they get published if you increase this configuration option
+ - Added option to configure required number of satellites to establish the position. 3D fix is 3 satellites, but sometimes you need a more accurate position rather than frequent updates. Setting this to 5, or even 6 or 7 will greatly increase the accuracy of the position reported to device_tracker. Note that the updated position frequency could be reduced if the GPS sensor has bad coverage, especially the first minutes after the add-on is started. You will then get 0 new updates in the log, but be patient and it will start reporting if the coverage is good enough
+ - Introduced a new sensor for Sky data. Under Settings -> Integrations -> Entities (MQTT) -> GPSD Service. This device shows the Sky coverage data as attributes. The sensor is called sensor.gpsd_service_sky_data and the state is the current number of satellites used to establish position
 
 ## [2024.4.1] - 2024-04-10
  - NEW OPTION: No username or password required for MQTT if using Mosquitto on Home Assistant. If you use custom username / password this can be deleted if the previous is true
