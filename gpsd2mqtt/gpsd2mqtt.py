@@ -313,9 +313,7 @@ while True:
                 time_elapsed = (datetime.datetime.now() - last_summary_time).total_seconds() // 60
 
                 # Print the summary message
-                summary_message = f"""Published {published_updates} location updates to the device_tracker
-                                    in the last {time_elapsed} minutes. Achieved {accuracy}, in coverage of 
-                                    {n_satellites} of required {min_n_satellites}."""
+                summary_message = f"Published {published_updates} location updates to the device_tracker in the last {time_elapsed} minutes. Achieved {accuracy}, in coverage of {n_satellites} of required {min_n_satellites} GPS satellites."
                 logger.info(summary_message)
 
                 # Reset the counters
