@@ -38,4 +38,4 @@ ports:
   2947/tcp: null
 devices:
   - /dev/pps0
-image: sbarmen/{arch}-addon-gpsd2mqtt
+# image: sbarmen/{arch}-addon-gpsd2mqtt

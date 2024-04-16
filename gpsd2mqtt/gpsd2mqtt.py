@@ -243,6 +243,8 @@ while True:
     with GPSDClient(host="127.0.0.1") as gps_client:
 
         tpv_publish_flag = False # Set to false, no updates until required number of satellites is found
+        log_satellites = 0 # Initialize variable for log printing, want the highest seen satellites for the log round
+        accuracy = None # Initialize variable, to ensure no error
 
         for raw_result in gps_client.json_stream():
             result = json.loads(raw_result)
@@ -250,6 +252,10 @@ while True:
             if result.get("class") == "SKY":
                 # USat is the current number of satellites used to calculate the position - the more the better
                 n_satellites = result.get("uSat", 0)
+
+                # Set the highest number of satellites used for positioning in this log round
+                if log_satellites < n_satellites:
+                    log_satellites = n_satellites
 
                 # If the user has configured a minimum # of satellites needed for a "good position"
                 if n_satellites >= min_n_satellites:
@@ -313,11 +319,12 @@ while True:
                 time_elapsed = (datetime.datetime.now() - last_summary_time).total_seconds() // 60
 
                 # Print the summary message
-                summary_message = f"Published {published_updates} location updates to the device_tracker in the last {time_elapsed} minutes. Achieved {accuracy}, in coverage of {n_satellites} of required {min_n_satellites} GPS satellites (at the time of log - could have had better fix in last logging periode)."
+                summary_message = f"Published {published_updates} updates to the device_tracker in last {time_elapsed} minutes. Achieved {accuracy}, position with {log_satellites} of required {min_n_satellites} GPS satellites."
                 logger.info(summary_message)
 
                 # Reset the counters
                 published_updates = 0
+                log_satellites = 0
                 last_summary_time = datetime.datetime.now()
 
 # Stop the MQTT network loop
