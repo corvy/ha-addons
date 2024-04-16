@@ -72,13 +72,9 @@ logger.debug('MQTT Hostname: ' + mqtt_broker)
 logger.debug('MQTT TCP Port: ' + str(mqtt_port))
 logger.debug('MQTT Username: ' + mqtt_username)
 logger.debug('MQTT Password: ' + mqtt_pw)
-logger.debug('MQTT Config: ' + mqtt_config)
-logger.debug('MQTT State: ' + mqtt_state)
-logger.debug('MQTT Attribute: ' + mqtt_attr)
 logger.debug('Publish interval: ' + str(publish_interval))
 logger.debug('Summary interval: ' + str(summary_interval))
 logger.debug('Debug enabled: ' + str(debug))
-logger.debug('Unique ID: ' + unique_identifier)
 
 
 # Define the necessary callback functions for the MQTT client
@@ -176,6 +172,11 @@ def publish_json_configs():
     mqtt_sky_state = f"gpsd2mqtt/{unique_identifier}_sky/state"
     mqtt_sky_attr = f"gpsd2mqtt/{unique_identifier}_sky/attribute"
 
+    logger.debug('Unique ID: ' + unique_identifier)
+    logger.debug('MQTT Config: ' + mqtt_config)
+    logger.debug('MQTT State: ' + mqtt_state)
+    logger.debug('MQTT Attribute: ' + mqtt_attr)
+
     # Create the device using the Home Assistant discovery protocol and set the state not_home
     # "state_topic": "{mqtt_state}", (Removed from json_config)
     # Serialize JSON objects separately
@@ -204,7 +205,9 @@ def publish_json_configs():
     json_config_sensor = f'''
     {{
         "unique_id": "{unique_identifier}_sky",
-        "name": "GPS Sky Data",
+        "name": "Sky Data",
+        "icon": "mdi:satellite-variant",
+        "platform": "mqtt",
         "state_topic": "{mqtt_sky_state}",
         "json_attributes_topic": "{mqtt_sky_attr}",
         "device": {{
@@ -218,32 +221,35 @@ def publish_json_configs():
     client.publish(mqtt_config, json_config_device_tracker) # Publish the device tracker discovery message
     client.publish(mqtt_sky_config, json_config_sensor) # Publish the sensor discovery message
 
-publish_json_configs()
+    logger.info(f"Published MQTT discovery message to topic: {mqtt_config}")
+    logger.debug(f"Published {json_config_device_tracker} discovery message to topic: {mqtt_config}")
+    logger.debug(f"Published {json_config_sensor} discovery message to topic: {mqtt_sky_config}")
+
+    return mqtt_attr, mqtt_sky_state, mqtt_sky_attr
+
+mqtt_attr, mqtt_sky_state, mqtt_sky_attr = publish_json_configs()
 
 # Publish the serialized JSON objects
-
-
-logger.info(f"Published MQTT discovery message to topic: {mqtt_config}")
-logger.debug(f"Published {json_config} discovery message to topic: {mqtt_config}")
-
-
 # Main program loop to update the device location from GPS
 while True:
 
     # Check connection and perform reconnection if needed
     if not client.is_connected():
-       reconnect_to_mqtt()
+        reconnect_to_mqtt()
 
     logger.info("Starting location detection and sending GPS updates.")
     client.loop(timeout=1) # Process MQTT messages with a 1-second timeout
 
     with GPSDClient(host="127.0.0.1") as gps_client:
 
+        tpv_publish_flag = False # Set to false, no updates until required number of satellites is found
+
         for raw_result in gps_client.json_stream():
             result = json.loads(raw_result)
-
+            
             if result.get("class") == "SKY":
-                n_satellites = result.get("nSat", 0)
+                # USat is the current number of satellites used to calculate the position - the more the better
+                n_satellites = result.get("uSat", 0)
 
                 # If the user has configured a minimum # of satellites needed for a "good position"
                 if n_satellites >= min_n_satellites:
@@ -251,16 +257,14 @@ while True:
                 else:
                     tpv_publish_flag = False
 
-                #### REMOVE REMOVE REMOVE
-                tpv_publish_flag = True    
-                  
+                logger.debug(f"Number of satellites: {n_satellites} of required {min_n_satellites}")
+
                 # Publish SKY data
                 if (datetime.datetime.now() - last_publish_time).total_seconds() >= publish_interval or publish_interval == 0:
                     client.publish(mqtt_sky_attr, json.dumps(result))
-                    published_updates += 1 # Add one per publish for the summary log 
+                    client.publish(mqtt_sky_state, str(n_satellites)) 
+                    logger.debug(f"Published SKY: {str(n_satellites)} to topic: {mqtt_sky_state}")
                     logger.debug(f"Published SKY: {result} to topic: {mqtt_sky_attr}")
-                    last_publish_time = datetime.datetime.now()
-
 
             if result.get("class") == "TPV" and tpv_publish_flag: # Check if it is TPV, and that we meet the minimum # of satellites
                 mode = result.get("mode")
@@ -299,8 +303,9 @@ while True:
                         client.publish(mqtt_attr, json.dumps(result))
                         published_updates += 1 # Add one per publish for the summary log 
                         logger.debug(f"Published TPV: {result} to topic: {mqtt_attr}")
-
+                    
                     last_publish_time = datetime.datetime.now()
+                    
             
             # Check if a summary should be printed
             if (datetime.datetime.now() - last_summary_time).total_seconds() >= summary_interval:
@@ -308,7 +313,7 @@ while True:
                 time_elapsed = (datetime.datetime.now() - last_summary_time).total_seconds() // 60
 
                 # Print the summary message
-                summary_message = f"Published {published_updates} updates in the last {time_elapsed} minutes"
+                summary_message = f"Published {published_updates} location updates to the device_tracker in the last {time_elapsed} minutes"
                 logger.info(summary_message)
 
                 # Reset the counters
