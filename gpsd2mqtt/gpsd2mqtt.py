@@ -38,6 +38,7 @@ baudrate = data.get("baudrate") or 9600
 mqtt_broker = data.get("mqtt_broker") or "core-mosquitto"
 mqtt_port = data.get("mqtt_port") or 1883
 mqtt_username = sys.argv[1] or data.get("mqtt_username")
+mqtt_config = None
 # mqtt_username = data.get("mqtt_username") or "addons"
 mqtt_pw = sys.argv[2] or data.get("mqtt_pw")
 # Default confiuration options, should normally not be changed
@@ -225,9 +226,9 @@ def publish_json_configs():
     logger.debug(f"Published {json_config_device_tracker} discovery message to topic: {mqtt_config}")
     logger.debug(f"Published {json_config_sensor} discovery message to topic: {mqtt_sky_config}")
 
-    return mqtt_attr, mqtt_sky_state, mqtt_sky_attr
+    return mqtt_attr, mqtt_sky_state, mqtt_sky_attr, mqtt_config
 
-mqtt_attr, mqtt_sky_state, mqtt_sky_attr = publish_json_configs()
+mqtt_attr, mqtt_sky_state, mqtt_sky_attr, mqtt_config = publish_json_configs()
 
 # Publish the serialized JSON objects
 # Main program loop to update the device location from GPS
