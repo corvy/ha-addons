@@ -1,7 +1,7 @@
 # Changelog
 
 ## [2024.4.4] - 2024-05-28
- - Reworked som fixes that made the addon not detect reboots of HA
+ - Reworked changes that broke republishing of MQTT devices after HA reboot
 
 ## [2024.4.3] - 2024-05-26
  - Small fixes
