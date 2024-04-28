@@ -165,7 +165,6 @@ signal.signal(signal.SIGTERM, signal_handler)
 signal.signal(signal.SIGINT, signal_handler)
 
 def publish_json_configs():
-    global mqtt_config
     unique_identifier = get_unique_identifier()
     mqtt_config_deprecated = "homeassistant/device_tracker/gpsd/config"
     mqtt_config = f"homeassistant/device_tracker/gpsd2mqtt/{unique_identifier}/config"
@@ -188,7 +187,6 @@ def publish_json_configs():
         "unique_id": "{unique_identifier}",
         "name": "Location",
         "platform": "mqtt",
-        "state_topic": "{mqtt_state}",
         "json_attributes_topic": "{mqtt_attr}",
         "payload_home": "home",
         "payload_not_home": "not_home",
