@@ -121,7 +121,8 @@ def on_message(client, userdata, msg):
     logger.debug("Received message: " + msg.topic + " " + str(msg.payload))
     if msg.topic == "homeassistant/status" and msg.payload.decode() == "online":
         # Resend the MQTT discovery message
-        client.publish(mqtt_config, json_config)
+        client.publish(mqtt_config, json_config_device_tracker)
+        client.publish(mqtt_config, json_config_sensor)
         logger.info("Home Assistant reboot detected. Re-sent MQTT discovery message.")
 
 def on_log(client, userdata, level, buf):
@@ -227,9 +228,9 @@ def publish_json_configs():
     logger.debug(f"Published {json_config_device_tracker} discovery message to topic: {mqtt_config}")
     logger.debug(f"Published {json_config_sensor} discovery message to topic: {mqtt_sky_config}")
 
-    return mqtt_attr, mqtt_sky_state, mqtt_sky_attr, mqtt_config
+    return mqtt_attr, mqtt_sky_state, mqtt_sky_attr, mqtt_config, json_config_device_tracker, json_config_sensor
 
-mqtt_attr, mqtt_sky_state, mqtt_sky_attr, mqtt_config = publish_json_configs()
+mqtt_attr, mqtt_sky_state, mqtt_sky_attr, mqtt_config, json_config_device_tracker, json_config_sensor = publish_json_configs()
 
 # Publish the serialized JSON objects
 # Main program loop to update the device location from GPS
