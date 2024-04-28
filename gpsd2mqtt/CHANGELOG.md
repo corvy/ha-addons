@@ -1,6 +1,6 @@
 # Changelog
 
-## [2024.4.3] - 2024-05-28
+## [2024.4.4] - 2024-05-28
  - Reworked som fixes that made the addon not detect reboots of HA
 
 ## [2024.4.3] - 2024-05-26
