@@ -121,7 +121,7 @@ def on_message(client, userdata, msg):
     logger.debug("Received message: " + msg.topic + " " + str(msg.payload))
     if msg.topic == "homeassistant/status" and msg.payload.decode() == "online":
         # Resend the MQTT discovery message
-        client.publish(mqtt_config, json_config)
+        publish_json_configs()
         logger.info("Home Assistant reboot detected. Re-sent MQTT discovery message.")
 
 def on_log(client, userdata, level, buf):
@@ -167,7 +167,7 @@ def publish_json_configs():
     unique_identifier = get_unique_identifier()
     mqtt_config_deprecated = "homeassistant/device_tracker/gpsd/config"
     mqtt_config = f"homeassistant/device_tracker/gpsd2mqtt/{unique_identifier}/config"
-    mqtt_state = f"gpsd2mqtt/{unique_identifier}/state"
+    # mqtt_state = f"gpsd2mqtt/{unique_identifier}/state"
     mqtt_attr = f"gpsd2mqtt/{unique_identifier}/attribute"
     mqtt_sky_config = f"homeassistant/sensor/gpsd2mqtt/{unique_identifier}_sky/config"
     mqtt_sky_state = f"gpsd2mqtt/{unique_identifier}_sky/state"
@@ -175,7 +175,7 @@ def publish_json_configs():
 
     logger.debug('Unique ID: ' + unique_identifier)
     logger.debug('MQTT Config: ' + mqtt_config)
-    logger.debug('MQTT State: ' + mqtt_state)
+    # logger.debug('MQTT State: ' + mqtt_state)
     logger.debug('MQTT Attribute: ' + mqtt_attr)
 
     # Create the device using the Home Assistant discovery protocol and set the state not_home
@@ -186,7 +186,6 @@ def publish_json_configs():
         "unique_id": "{unique_identifier}",
         "name": "Location",
         "platform": "mqtt",
-        "state_topic": "{mqtt_state}",
         "json_attributes_topic": "{mqtt_attr}",
         "payload_home": "home",
         "payload_not_home": "not_home",
@@ -226,9 +225,9 @@ def publish_json_configs():
     logger.debug(f"Published {json_config_device_tracker} discovery message to topic: {mqtt_config}")
     logger.debug(f"Published {json_config_sensor} discovery message to topic: {mqtt_sky_config}")
 
-    return mqtt_attr, mqtt_sky_state, mqtt_sky_attr, mqtt_config
+    return mqtt_attr, mqtt_sky_state, mqtt_sky_attr
 
-mqtt_attr, mqtt_sky_state, mqtt_sky_attr, mqtt_config = publish_json_configs()
+mqtt_attr, mqtt_sky_state, mqtt_sky_attr = publish_json_configs()
 
 # Publish the serialized JSON objects
 # Main program loop to update the device location from GPS
