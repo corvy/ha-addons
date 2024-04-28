@@ -1,5 +1,8 @@
 # Changelog
 
+## [2024.4.4] - 2024-05-28
+ - Small fixes
+
 ## [2024.4.3] - 2024-05-26
  - Small fixes
 
