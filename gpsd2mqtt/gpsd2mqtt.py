@@ -167,7 +167,7 @@ def publish_json_configs():
     unique_identifier = get_unique_identifier()
     mqtt_config_deprecated = "homeassistant/device_tracker/gpsd/config"
     mqtt_config = f"homeassistant/device_tracker/gpsd2mqtt/{unique_identifier}/config"
-    mqtt_state = f"gpsd2mqtt/{unique_identifier}/state"
+    # mqtt_state = f"gpsd2mqtt/{unique_identifier}/state"
     mqtt_attr = f"gpsd2mqtt/{unique_identifier}/attribute"
     mqtt_sky_config = f"homeassistant/sensor/gpsd2mqtt/{unique_identifier}_sky/config"
     mqtt_sky_state = f"gpsd2mqtt/{unique_identifier}_sky/state"
@@ -175,7 +175,7 @@ def publish_json_configs():
 
     logger.debug('Unique ID: ' + unique_identifier)
     logger.debug('MQTT Config: ' + mqtt_config)
-    logger.debug('MQTT State: ' + mqtt_state)
+    # logger.debug('MQTT State: ' + mqtt_state)
     logger.debug('MQTT Attribute: ' + mqtt_attr)
 
     # Create the device using the Home Assistant discovery protocol and set the state not_home
