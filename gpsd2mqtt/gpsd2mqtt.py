@@ -148,20 +148,21 @@ while not client.is_connected():
     time.sleep(1) 
     logger.info("Verifying MQTT Connection ....")
 
-def shutdown():
-    # Publish blank config to delete entities configured but the addon
-    logger.info("Shutdown detected, cleaning up.")
-    # client.publish(mqtt_config)
+# Not sure we need this part, commenting out for now
+# def shutdown():
+#    # Publish blank config to delete entities configured but the addon
+#    logger.info("Shutdown detected, cleaning up.")
+#    # client.publish(mqtt_config)
 
-def signal_handler(sig, frame):
-    # Handle shutdown signal
-    shutdown()
-    client.disconnect()
-    sys.exit(0)
+# def signal_handler(sig, frame):
+#    # Handle shutdown signal
+#    shutdown()
+#    client.disconnect()
+#    sys.exit(0)
 
 # Register signal handler for SIGTERM and SIGINT
-signal.signal(signal.SIGTERM, signal_handler)
-signal.signal(signal.SIGINT, signal_handler)
+# signal.signal(signal.SIGTERM, signal_handler)
+# signal.signal(signal.SIGINT, signal_handler)
 
 def publish_json_configs():
     unique_identifier = get_unique_identifier()
