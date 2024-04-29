@@ -10,54 +10,7 @@ panel_title: Signal K
 #host_network: true
 #web_ui: http://[HOST]:[PORT:3000]/admin/
 ingress: true
-ingress_port: 3030
-ingress_stream: true
-ingress_entry: "admin/#/"
-init: false
-arch:
-  - aarch64
-  - amd64
-  - armhf
-  - armv7
-  - i386
-services:
-  - mqtt:need
-#options:
-#  device: null
-#  mqtt_username: null
-#  mqtt_pw: null
-schema:
-  #  device: device(subsystem=tty)
-  #  baudrate: int?
-  #  summary_interval: int?
-  #  publish_interval: int?
-  #  mqtt_broker: str?
-  #  mqtt_port: int?
-  #  mqtt_username: str?
-  #  mqtt_pw: str?
-  #  mqtt_state: str?
-  debug: bool?
-ports:
-  2884/tcp: null
-  3000/tcp: null
-  3030/tcp: null
-  #devices:
-#  - /dev/pps0
-#image: sbarmen/{arch}-addon-signalk2mqtt
-
-name: "Signal K to MQTT"
-description: >-
-  This addon will run [Signal K] (https://signalk.org) and will expose MQTT for sync with Home Assistant
-url: https://github.com/corvy/ha-addons/tree/main/signalk2mqtt
-version: "2023.7.0b79"
-slug: "signalk2mqtt"
-codenotary: "stian@barmen.nu"
-apparmor: false
-panel_title: Signal K
-#host_network: true
-#web_ui: http://[HOST]:[PORT:3000]/admin/
-ingress: true
-ingress_port: 3030
+ingress_port: 3000
 ingress_stream: true
 ingress_entry: "admin/#/"
 init: false
