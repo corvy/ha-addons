@@ -2,7 +2,7 @@ name: "Signal K to MQTT"
 description: >-
   This addon will run [Signal K] (https://signalk.org) and will expose MQTT for sync with Home Assistant
 url: https://github.com/corvy/ha-addons/tree/main/signalk2mqtt
-version: "2024.4.0b7"
+version: "2024.4.0b8"
 slug: "signalk2mqtt"
 codenotary: "stian@barmen.nu"
 apparmor: false
@@ -12,7 +12,7 @@ panel_title: Signal K
 ingress: true
 ingress_port: 3030
 ingress_stream: true
-# ingress_entry: "admin/#/"
+ingress_entry: "admin/#/"
 init: false
 arch:
   - aarch64
@@ -39,8 +39,8 @@ schema:
   debug: bool?
 ports:
   2884/tcp: null
-  3000/tcp: null
-  3030/tcp: null
+  3000/tcp: null # Signal K App
+  3030/tcp: null # Nginx
   #devices:
 #  - /dev/pps0
 #image: sbarmen/{arch}-addon-signalk2mqtt
