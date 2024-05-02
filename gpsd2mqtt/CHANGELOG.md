@@ -1,5 +1,8 @@
 # Changelog
 
+## [2024.5.0] ##
+ - Add more sensor data to the device
+
 ## [2024.4.4] - 2024-05-28
  - Reworked changes that broke republishing of MQTT devices after HA reboot
 
