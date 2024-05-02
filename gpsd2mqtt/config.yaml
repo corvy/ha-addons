@@ -8,7 +8,6 @@ url: https://github.com/corvy/ha-addons/tree/main/gpsd2mqtt
 version: "2024.4.4"
 slug: "gpsd2mqtt"
 codenotary: "stian@barmen.nu"
-apparmor: true
 init: false
 arch:
   - aarch64
