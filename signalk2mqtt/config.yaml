@@ -11,7 +11,7 @@ panel_title: Signal K
 # web_ui: http://[HOST]:[PORT:3000]/admin/
 ingress: true
 # ingress_port: 3000
-ingress_stream: false
+ingress_stream: true
 ingress_entry: "admin/#/dashboard"
 init: false
 arch:
