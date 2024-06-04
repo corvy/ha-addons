@@ -4,6 +4,10 @@ This addon repoistory was made to publish my first addon since I was missing a G
 
 [![Open your Home Assistant instance and show the add add-on repository dialog with a specific repository URL pre-filled.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fcorvy%2Fha-addons)
 
+## Support the work I do
+If you want to show your support for the efforts I make in supporting these addons, please buy me a coffee!
+[<img src="https://miro.medium.com/v2/resize:fit:320/format:webp/1*LUqcagBr2LbRg2GHZKQUJg.png">](https://buymeacoffee.com/sbarmen)
+
 ## Add-ons
 
 This repository contains the following add-ons
