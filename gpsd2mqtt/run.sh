@@ -6,13 +6,27 @@ DEVICE=$(bashio::config 'device')
 BAUDRATE=$(bashio::config 'baudrate' 9600)
 GPSD_OPTIONS="--nowait --readonly --listenany"
 GPSD_SOCKET="-F /var/run/gpsd.sock"
-BITS="cs8"
+CHARSIZE=$(bashio::config 'charsize' 8)
+PARITY=$(bashio::config 'parity' false)
+STOPBIT=$(bashio::config 'stopbit' 1)
 CONTROL="clocal"
-STOPBIT="-cstopb"
 MQTT_USER=$(bashio::config 'mqtt_username')
 MQTT_PASSWORD=$(bashio::config 'mqtt_pw')
 HA_AUTH=false
 
+# stty expexts -parenb to disable parity
+if PARITY eq false; then
+  PARITY_CL="-parenb"
+elif PARITY eq true; then
+  PARITY_CL="parenb"
+fi
+
+# stty expexts -cstopb to set 1 stop bit per character, cstopb for 2
+if STOPBIT=1; then
+  STOPBIT_CL="-cstopb"
+elif PARITY = 2; then
+  STOPBIT_CL="cstopb"
+fi
 
 # Check if mqtt username is set, if not get it from Home Assistant via bashio::services
 if bashio::config.is_empty 'mqtt_username' && bashio::var.has_value "$(bashio::services 'mqtt')"; then
@@ -34,7 +48,7 @@ fi
 #
 
 echo "Setting up serial device with the following: ${DEVICE} ${BAUDRATE} ${BITS} ${CONTROL} ${STOPBIT}"
-/bin/stty -F ${DEVICE} raw ${BAUDRATE} ${BITS} ${CONTROL} ${STOPBIT}
+/bin/stty -F ${DEVICE} raw ${BAUDRATE} cs${CHARSIZE} ${PARITY_CL} ${CONTROL} ${STOPBIT_CL}
 # /bin/setserial ${DEVICE} low_latency
 
 # Config file for gpsd server
