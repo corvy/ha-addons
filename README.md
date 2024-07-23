@@ -1,4 +1,4 @@
-# Stian B. Barmens Home Assistant add-on repository
+# Stian B. Barmens BETA Home Assistant add-on repository
 
 This addon repoistory was made to publish my first addon since I was missing a GPSD addon that published updated status to MQTT. 
 
