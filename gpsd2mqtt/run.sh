@@ -14,19 +14,20 @@ MQTT_USER=$(bashio::config 'mqtt_username')
 MQTT_PASSWORD=$(bashio::config 'mqtt_pw')
 HA_AUTH=false
 
-# stty expexts -parenb to disable parity
-if PARITY eq false; then
+# stty expects -parenb to disable parity
+if [ "$PARITY" = false ]; then
   PARITY_CL="-parenb"
-elif PARITY eq true; then
+elif [ "$PARITY" = true ]; then
   PARITY_CL="parenb"
 fi
 
-# stty expexts -cstopb to set 1 stop bit per character, cstopb for 2
-if STOPBIT=1; then
+# stty expects -cstopb to set 1 stop bit per character, cstopb for 2
+if [ "$STOPBIT" -eq 1 ]; then
   STOPBIT_CL="-cstopb"
-elif PARITY = 2; then
+elif [ "$STOPBIT" -eq 2 ]; then
   STOPBIT_CL="cstopb"
 fi
+
 
 # Check if mqtt username is set, if not get it from Home Assistant via bashio::services
 if bashio::config.is_empty 'mqtt_username' && bashio::var.has_value "$(bashio::services 'mqtt')"; then
