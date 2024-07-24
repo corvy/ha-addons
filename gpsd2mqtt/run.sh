@@ -75,7 +75,7 @@ echo "Setting up serial device with the following: ${DEVICE} ${BAUDRATE} cs${CHA
 
 echo "Starting GPSD with device \"${DEVICE}\"..."
 /usr/sbin/gpsd --version
-/bin/su /usr/sbin/gpsd ${GPSD_OPTIONS} -s ${BAUDRATE} ${DEVICE}
+/usr/sbin/gpsd ${GPSD_OPTIONS} -s ${BAUDRATE} ${DEVICE}
 
 #echo "Checking device settings"
 #/usr/bin/gpsctl
