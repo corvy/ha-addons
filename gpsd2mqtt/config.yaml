@@ -5,7 +5,7 @@ description: >-
 
   Installation requires you to set up a username and password to publish to MQTT. Also you must select the serial device for GPSD in configuration.
 url: https://github.com/corvy/ha-addons/tree/main/gpsd2mqtt
-version: "2024.7.0_b4"
+version: "2024.7.0_b5"
 slug: "gpsd2mqtt"
 codenotary: "stian@barmen.nu"
 init: false
@@ -35,6 +35,7 @@ schema:
   mqtt_username: str?
   mqtt_pw: str?
   mqtt_state: str?
+  gpsd_options: str?
   debug: bool?
 ports:
   2947/tcp: null

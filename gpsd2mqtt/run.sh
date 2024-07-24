@@ -4,7 +4,8 @@
 CONFIG_PATH="/data/options.json"
 DEVICE=$(bashio::config 'device')
 BAUDRATE=$(bashio::config 'baudrate' 9600)
-GPSD_OPTIONS="--nowait --readonly --listenany"
+GPSD_OPTIONS=$(bashio::config 'gpsd_options') 
+GPSD_OPTIONS="${GPSD_OPTIONS} --nowait --readonly --listenany"
 GPSD_SOCKET="-F /var/run/gpsd.sock"
 CHARSIZE=$(bashio::config 'charsize' 8)
 PARITY=$(bashio::config 'parity' false)
