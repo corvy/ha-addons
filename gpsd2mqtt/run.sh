@@ -15,7 +15,6 @@ MQTT_USER=$(bashio::config 'mqtt_username')
 MQTT_PASSWORD=$(bashio::config 'mqtt_pw')
 HA_AUTH=false
 
-<<<<<<< HEAD
 # stty expects -parenb to disable parity
 if [ "$PARITY" = false ]; then
   PARITY_CL="-parenb"
@@ -30,21 +29,6 @@ elif [ "$STOPBIT" -eq 2 ]; then
   STOPBIT_CL="cstopb"
 fi
 
-=======
-# stty expexts -parenb to disable parity
-if PARITY eq false; then
-  PARITY_CL="-parenb"
-elif PARITY eq true; then
-  PARITY_CL="parenb"
-fi
-
-# stty expexts -cstopb to set 1 stop bit per character, cstopb for 2
-if STOPBIT=1; then
-  STOPBIT_CL="-cstopb"
-elif PARITY = 2; then
-  STOPBIT_CL="cstopb"
-fi
->>>>>>> origin/debug_#31
 
 # Check if mqtt username is set, if not get it from Home Assistant via bashio::services
 if bashio::config.is_empty 'mqtt_username' && bashio::var.has_value "$(bashio::services 'mqtt')"; then
@@ -65,11 +49,7 @@ fi
 # Uncomment the following lines if using a serial device:
 #
 
-<<<<<<< HEAD
 echo "Setting up serial device with the following: ${DEVICE} ${BAUDRATE} cs${CHARSIZE} ${STOPBIT_CL} ${PARITY_CL} ${CONTROL}"
-=======
-echo "Setting up serial device with the following: ${DEVICE} ${BAUDRATE} ${BITS} ${CONTROL} ${STOPBIT}"
->>>>>>> origin/debug_#31
 /bin/stty -F ${DEVICE} raw ${BAUDRATE} cs${CHARSIZE} ${PARITY_CL} ${CONTROL} ${STOPBIT_CL}
 # /bin/setserial ${DEVICE} low_latency
 
