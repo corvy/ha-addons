@@ -26,6 +26,9 @@ schema:
   charsize: int?
   parity: bool?
   stopbit: int?
+  charsize: int?
+  parity: bool?
+  stopbit: int?
   publish_3d_fix_only: bool?
   min_n_satellites: int?
   publish_interval: int?
@@ -41,4 +44,4 @@ ports:
   2947/tcp: null
 devices:
   - /dev/pps0
-image: ghcr.io/corvy/{arch}-addon-gpsd2mqtt
+# image: ghcr.io/corvy/{arch}-addon-gpsd2mqtt
