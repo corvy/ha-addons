@@ -63,6 +63,10 @@ profile gpsd2mqtt flags=(attach_disconnected,mediate_deleted) {
     network inet6 stream,
     network inet6 dgram,
 
+    # Allow system calls needed for gpsd
+    capability setgid,
+    capability setuid,
+
     # Add any additional MQTT-related rules if needed
     # For example, if you're using the paho-mqtt library
     /usr/bin/python3 cx -> paho.mqtt,
