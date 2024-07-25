@@ -1,4 +1,4 @@
 # https://developers.home-assistant.io/docs/add-ons/repository#repository-configuration
-name: Stians BETA Home Assistant Repository
-url: 'https://github.com/corvy/ha-beta-addons'
+name: Stians Home Assistant Repository
+url: 'https://github.com/corvy/ha-addons'
 maintainer: Stian B. Barmen <stian@barmen.nu>
