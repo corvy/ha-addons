@@ -27,9 +27,21 @@ configuration:
   debug:
     name: Debug
     description: Enable debugging to get more info in the logs in case of problems.
+  gpsd_options:
+    name: GPSD options
+    description: Add aditional settings you want to pass to GPSD, could be "-D3 -N" for example for debugging in logs
   baudrate:
     name: Baudrate
     description: Serial device baudrate, defaults to 9600
+  charsize:
+    name: Databits
+    description: How many databits should we use, defaults to 8. 
+  parity:
+    name: Parity bit
+    description: Should we have parity bit? Defaults to off.
+  stopbit:
+    name: stopbit
+    description: Should we have 1 or 2 stopbit? Defaults to 1.  
   summary_interval:
     name: Print Summary Interval in seconds
     description: How often should the add-on print a summary to the logs. Defaults to 120 seconds.
