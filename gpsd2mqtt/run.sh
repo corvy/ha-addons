@@ -4,14 +4,30 @@
 CONFIG_PATH="/data/options.json"
 DEVICE=$(bashio::config 'device')
 BAUDRATE=$(bashio::config 'baudrate' 9600)
-GPSD_OPTIONS="--nowait --readonly --listenany"
+GPSD_OPTIONS=$(bashio::config 'gpsd_options') 
+GPSD_OPTIONS="${GPSD_OPTIONS} --nowait --readonly --listenany"
 GPSD_SOCKET="-F /var/run/gpsd.sock"
-BITS="cs8"
+CHARSIZE=$(bashio::config 'charsize' 8)
+PARITY=$(bashio::config 'parity' false)
+STOPBIT=$(bashio::config 'stopbit' 1)
 CONTROL="clocal"
-STOPBIT="-cstopb"
 MQTT_USER=$(bashio::config 'mqtt_username')
 MQTT_PASSWORD=$(bashio::config 'mqtt_pw')
 HA_AUTH=false
+
+# stty expects -parenb to disable parity
+if [ "$PARITY" = false ]; then
+  PARITY_CL="-parenb"
+elif [ "$PARITY" = true ]; then
+  PARITY_CL="parenb"
+fi
+
+# stty expects -cstopb to set 1 stop bit per character, cstopb for 2
+if [ "$STOPBIT" -eq 1 ]; then
+  STOPBIT_CL="-cstopb"
+elif [ "$STOPBIT" -eq 2 ]; then
+  STOPBIT_CL="cstopb"
+fi
 
 
 # Check if mqtt username is set, if not get it from Home Assistant via bashio::services
@@ -33,8 +49,8 @@ fi
 # Uncomment the following lines if using a serial device:
 #
 
-echo "Setting up serial device with the following: ${DEVICE} ${BAUDRATE} ${BITS} ${CONTROL} ${STOPBIT}"
-/bin/stty -F ${DEVICE} raw ${BAUDRATE} ${BITS} ${CONTROL} ${STOPBIT}
+echo "Setting up serial device with the following: ${DEVICE} ${BAUDRATE} cs${CHARSIZE} ${STOPBIT_CL} ${PARITY_CL} ${CONTROL}"
+/bin/stty -F ${DEVICE} raw ${BAUDRATE} cs${CHARSIZE} ${PARITY_CL} ${CONTROL} ${STOPBIT_CL}
 # /bin/setserial ${DEVICE} low_latency
 
 # Config file for gpsd server
@@ -59,7 +75,7 @@ echo "Setting up serial device with the following: ${DEVICE} ${BAUDRATE} ${BITS}
 
 echo "Starting GPSD with device \"${DEVICE}\"..."
 /usr/sbin/gpsd --version
-/usr/sbin/gpsd ${GPSD_OPTIONS} -s ${BAUDRATE} ${GPSD_SOCKET} ${DEVICE}
+/usr/sbin/gpsd ${GPSD_OPTIONS} -s ${BAUDRATE} ${DEVICE}
 
 #echo "Checking device settings"
 #/usr/bin/gpsctl
