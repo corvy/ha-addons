@@ -27,10 +27,7 @@ profile gpsd2mqtt flags=(attach_disconnected,mediate_deleted) {
   # Access to options.json and other files within your addon
   /data/** rw,
 
-  # Start new profile for service
-  /usr/bin/myprogram cx -> myprogram,
-
-  profile myprogram flags=(attach_disconnected,mediate_deleted) {
+  profile gpsd flags=(attach_disconnected,mediate_deleted) {
     #include <abstractions/base>
 
     # Receive signals from S6-Overlay
@@ -42,15 +39,22 @@ profile gpsd2mqtt flags=(attach_disconnected,mediate_deleted) {
     # Access to mapped volumes specified in config.json
     /share/** rw,
 
+    # Allow gpsd access
+    /usr/sbin/gpsd rix,
+
     # Access required for service functionality
-    /usr/bin/myprogram r,
     /bin/bash rix,
     /bin/echo ix,
     /etc/passwd r,
-    /dev/tty rw,
 
-    # Allow gpsd access
-    /usr/sbin/gpsd r,
+    # ------------------------------------------------------------------------------
+    # common serial paths to GPS devices
+    /dev/tty{,S,USB,AMA,ACM,XTRX}[0-9]*    rw,
+
+    # default paths feeding GPS data into chrony
+    /{,var/}run/chrony.tty{,S,USB,AMA,XTRX}[0-9]*.sock rw,
+    /tmp/chrony.tty{,S,USB,AMA,XTRX}[0-9]*.sock rw,
+    # ------------------------------------------------------------------------------
 
     # Allow outbound MQTT communication
     network tcp,
