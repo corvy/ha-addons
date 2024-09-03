@@ -47,7 +47,9 @@ min_n_satellites = data.get("min_n_satellites") or 0 # Default to 0 (all results
 debug = data.get("debug", False)
 # Variables used to publish updates to the
 summary_interval = data.get("summary_interval") or 120 # Interval in seconds
-publish_interval = data.get("publish_interval") or 10 # Interval in seconds
+publish_interval = data.get("publish_interval") 
+if publish_interval is None:
+    publish_interval = 10  # Default to 10 Interval in seconds
 published_updates = 0
 last_summary_time = datetime.datetime.now()
 last_publish_time = datetime.datetime.now()
@@ -248,8 +250,15 @@ while True:
         accuracy = None # Initialize variable, to ensure no error
 
         for raw_result in gps_client.json_stream():
-            result = json.loads(raw_result)
-            
+            try:
+                result = json.loads(raw_result)
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to decode JSON: {e}")
+                continue
+
+            # Log the entire result object
+            logger.debug(f"RAW GPS data: {result}")
+
             if result.get("class") == "SKY":
                 # USat is the current number of satellites used to calculate the position - the more the better
                 n_satellites = result.get("uSat", 0)
@@ -265,7 +274,8 @@ while True:
                     tpv_publish_flag = False
 
                 logger.debug(f"Number of satellites: {n_satellites} of required {min_n_satellites}")
-
+                logger.debug(f"Published SKY: {result} to topic: {mqtt_sky_attr}")
+ 
                 # Publish SKY data
                 if (datetime.datetime.now() - last_publish_time).total_seconds() >= publish_interval or publish_interval == 0:
                     client.publish(mqtt_sky_attr, json.dumps(result))
@@ -295,6 +305,18 @@ while True:
                 if "lat" in result and result["lat"] is not None:
                     result["latitude"] = result.pop("lat")
 
+                # Track and magtrack are reported when GPSD starts, but will stop reporting when the GPS is stationary.
+                # This will report 'null', but still send the attribute so it does not get expired in Home Assistant.
+                if "track" not in result:
+                    result["track"] = None 
+                    logger.debug(f"Attribute track not in result, setting value to none")
+
+                if "magtrack" not in result:
+                    result["magtrack"] = None
+                    logger.debug(f"Attribute magtrack not in result, setting value to none")
+
+                logger.debug(f"Processed TPV Data: {result}")
+            
                 # Limit the GPS updates to the configured value, or publish all if disabled (0)
                 if (datetime.datetime.now() - last_publish_time).total_seconds() >= publish_interval or publish_interval == 0:
 
