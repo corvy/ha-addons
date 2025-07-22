@@ -19,13 +19,13 @@ services:
   - mqtt:need
 options:
   input_type: serial
-  device: null
+  device: "/dev/null"
   tcp_host: null
   tcp_port: null
   publish_3d_fix_only: true
 schema:
   input_type: list(serial|tcp)
-  device: str | null
+  device: device(subsystem=tty)
   baudrate: int?
   charsize: int?
   parity: bool?
