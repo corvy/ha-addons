@@ -1,0 +1,76 @@
+#include <tunables/global>
+
+profile gpsd2mqtt flags=(attach_disconnected,mediate_deleted) {
+  #include <abstractions/base>
+
+  # Capabilities
+  file,
+  signal (send) set=(kill,term,int,hup,cont),
+  network,
+
+  # S6-Overlay
+  /init ix,
+  /bin/** ix,
+  /usr/bin/** ix,
+  /run/{s6,s6-rc*,service}/** ix,
+  /package/** ix,
+  /command/** ix,
+  /etc/services.d/** rwix,
+  /etc/cont-init.d/** rwix,
+  /etc/cont-finish.d/** rwix,
+  /run/{,**} rwk,
+  /dev/tty rw,
+
+  # Bashio
+  /usr/lib/bashio/** ix,
+  /tmp/** rwk,
+
+  # Access to options.json and other files within your addon
+  /data/** rw,
+
+  profile /usr/sbin/gpsd flags=(attach_disconnected,mediate_deleted) {
+    #include <abstractions/base>
+
+    # Receive signals from S6-Overlay
+    signal (receive) peer=*gpsd2mqtt,
+
+    # Access to options.json and other files within your addon
+    /data/** rw,
+
+    # Access to mapped volumes specified in config.json
+    /share/** rw,
+
+    # Allow gpsd access
+    /usr/sbin/gpsd rix,
+
+    # Access required for service functionality
+    /bin/bash rix,
+    /bin/echo ix,
+    /etc/passwd r,
+
+    # ------------------------------------------------------------------------------
+    # common serial paths to GPS devices
+    /dev/tty{,S,USB,AMA,ACM,XTRX}[0-9]*    rw,
+
+    # default paths feeding GPS data into chrony
+    /{,var/}run/chrony.tty{,S,USB,AMA,XTRX}[0-9]*.sock rw,
+    /tmp/chrony.tty{,S,USB,AMA,XTRX}[0-9]*.sock rw,
+    # ------------------------------------------------------------------------------
+
+    # Allow outbound MQTT communication
+    network tcp,
+    network inet stream,
+    network inet dgram,
+    network inet6 stream,
+    network inet6 dgram,
+
+    # Allow system calls needed for gpsd
+    capability setgid,
+    capability setuid,
+
+    # Add any additional MQTT-related rules if needed
+    # For example, if you're using the paho-mqtt library
+    /usr/bin/python3 cx -> paho.mqtt,
+    /usr/lib/python3.11/site-packages/paho/mqtt/** r,
+  }
+}
