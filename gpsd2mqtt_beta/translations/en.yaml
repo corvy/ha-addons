@@ -3,6 +3,15 @@ configuration:
   device:
     name: GPS Device
     description: Serial device providing GPS data, must be supported by GPSD
+  input_type:
+    name: Device type 
+    description: Select serial for most use cases, like direct attached gps dongle via USB or similar. Optional select tcp for network connected devices, make sure to fill inn TCP Host and TCP Port under optional settings if you select tcp. 
+  tcp_host:
+    name: TCP Hostname or IP
+    descripton: Used if you select tcp connection for device type (see top). Make sure this is a resolvable hostname or IP address. 
+  tcp_port:
+    name: TCP Port
+    description: Select the port used to connect to the TCP socket on the host specified above. 
   mqtt_broker:
     name: MQTT Server IP or Hostname
     description: If not configured it will default to use the internal MQTT broker, addon must be installed.
