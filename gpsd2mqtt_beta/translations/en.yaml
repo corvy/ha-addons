@@ -2,10 +2,10 @@
 configuration:
   device:
     name: GPS Device
-    description: Serial device providing GPS data, must be supported by GPSD. Make sure serial is selected above. 
+    description: Serial device providing GPS data, must be supported by GPSD. Make sure serial is selected above, ignored for TCP setup, but has to be selected (/dev/ttyS0 could be a good choice). 
   input_type:
     name: Device type 
-    description: Select serial for most use cases, like direct attached gps dongle via USB or similar. Optional select tcp for network connected devices, make sure to fill inn TCP Host and TCP Port below.
+    description: Select serial for most use cases, like direct attached gps dongle via USB or similar. Optional select TCP for network connected devices, make sure to fill inn TCP Host and TCP Port below and set device to a dummy serial device (not used, any serial device would work).
   tcp_host:
     name: TCP Hostname or IP
     description: Optional, only if device type tcp is selected. Make sure this is a resolvable hostname or IP address. 
