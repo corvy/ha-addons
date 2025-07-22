@@ -25,7 +25,7 @@ options:
   publish_3d_fix_only: true
 schema:
   input_type: list(serial|tcp)
-  device: device(subsystem=tty)
+  device: device(subsystem=tty)?
   baudrate: int?
   charsize: int?
   parity: bool?
