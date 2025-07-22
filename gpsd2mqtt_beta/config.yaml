@@ -19,7 +19,7 @@ services:
   - mqtt:need
 options:
   input_type: serial
-  device: "/dev/null"
+  device: "/dev/ttyS0"
   tcp_host: null
   tcp_port: null
   publish_3d_fix_only: true
