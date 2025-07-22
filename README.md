@@ -20,19 +20,13 @@ This repository contains the following add-ons
 ![Supports armv7 Architecture][armv7-shield]
 ![Supports i386 Architecture][i386-shield]
 
-### [Signal K to MQTT](./signalk2mqtt)
+### [GPSD to MQTT Beta](./gpsd2mqtt)
+
+When there is development going on with addon the development will happen in de beta version. 
+
 ### [Signal K to MQTT](./signalk2mqtt)
 
-![Supports aarch64 Architecture][aarch64-shield]
-![Supports amd64 Architecture][amd64-shield]
-![Supports armhf Architecture][armhf-shield]
-![Supports armv7 Architecture][armv7-shield]
-![Supports i386 Architecture][i386-shield]
-![Supports aarch64 Architecture][aarch64-shield]
-![Supports amd64 Architecture][amd64-shield]
-![Supports armhf Architecture][armhf-shield]
-![Supports armv7 Architecture][armv7-shield]
-![Supports i386 Architecture][i386-shield]
+This add-on does not work, will be deleted. 
 
 <!--
 
