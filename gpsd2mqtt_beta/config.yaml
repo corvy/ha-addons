@@ -21,14 +21,14 @@ options:
   device: null
   publish_3d_fix_only: true
 schema:
-  device: device(subsystem=tty)
+  input_type: list(serial|tcp)
+  device: device(subsystem=tty)?
   baudrate: int?
   charsize: int?
   parity: bool?
   stopbit: int?
-  charsize: int?
-  parity: bool?
-  stopbit: int?
+  tcp_host: str?
+  tcp_port: int?
   publish_3d_fix_only: bool?
   min_n_satellites: int?
   publish_interval: int?
