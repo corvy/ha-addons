@@ -10,6 +10,9 @@
   - Bump actions/checkout from 4.1.7 to 4.2.2
   - Bump frenck/action-addon-linter from 2.15 to 2.18
 
+<details>
+<summary>Older changes</summary>
+
 ## [2024.9.0] - 2024-09-03
  - Added optional debug logging to check if all attributes received gets published to MQTT
  - Added logic to make sure attributes track and magtrack does not expire in Home Assistant even if not reported for an extended period, this can happen if the GPS is stationary
@@ -138,5 +141,4 @@
 
 - First release added
 
-
-
+</details>
