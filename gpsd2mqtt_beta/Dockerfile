@@ -7,6 +7,10 @@ ARG TEMPIO_VERSION BUILD_ARCH
 #    curl -sSLf -o /usr/bin/tempio \
 #    "https://github.com/home-assistant/tempio/releases/download/${TEMPIO_VERSION}/tempio_${BUILD_ARCH}"
 
+# Add edge repository to get latest gpsd
+RUN echo "https://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories \
+    && echo "https://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories
+
 RUN apk add --no-cache gpsd gpsd-clients bash py3-pip py3-paho-mqtt py3-pyserial
 RUN pip install --break-system-packages gpsdclient
 # RUN pip install paho-mqtt gpsdclient
