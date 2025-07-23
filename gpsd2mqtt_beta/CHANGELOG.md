@@ -1,6 +1,6 @@
 # Changelog
 
-## [2025.7.0b2] - 2025-07-23
+## [2025.7.0b3] - 2025-07-23
 - Add option to connect to TCP based device for GPS data
 - Upgrade to version 3.26.1 of GPSD
 
