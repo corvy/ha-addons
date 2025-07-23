@@ -2,7 +2,7 @@
 
 ## [2025.7.0b2] - 2025-07-23
 - Add option to connect to TCP based device for GPS data
-- Upgrade to version 3.26 of GPSD
+- Upgrade to version 3.26.1 of GPSD
 
 ## [2025.7.0] - 2025-07-21
 - Apparmor fix,  add network capability. Thanks for PR from @cbiffle #46 
