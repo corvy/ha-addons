@@ -14,15 +14,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Get default branch name
-        id: get_branch
+      - name: Fetch and checkout main branch
         run: |
-          echo "branch=$(git remote show origin | awk '/HEAD branch/ {print $NF}')" >> $GITHUB_OUTPUT
-
-      - name: Fetch and checkout default branch for commit
-        run: |
-          git fetch origin ${{ steps.get_branch.outputs.branch }}
-          git checkout ${{ steps.get_branch.outputs.branch }}
+          git fetch origin main
+          git checkout main
 
       - name: Update gpsd2mqtt_beta/CHANGELOG.md with collapsible old entries
         run: |
@@ -44,4 +39,4 @@ jobs:
         with:
           commit_message: "chore: update gpsd2mqtt_beta CHANGELOG.md from GitHub release"
           file_pattern: 'gpsd2mqtt_beta/CHANGELOG.md'
-          branch: ${{ steps.get_branch.outputs.branch }}
+          branch: main
