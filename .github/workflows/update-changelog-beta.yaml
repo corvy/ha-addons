@@ -19,8 +19,9 @@ jobs:
         run: |
           echo "branch=$(git remote show origin | awk '/HEAD branch/ {print $NF}')" >> $GITHUB_OUTPUT
 
-      - name: Check out default branch for commit
+      - name: Fetch and checkout default branch for commit
         run: |
+          git fetch origin ${{ steps.get_branch.outputs.branch }}
           git checkout ${{ steps.get_branch.outputs.branch }}
 
       - name: Update gpsd2mqtt_beta/CHANGELOG.md with collapsible old entries
