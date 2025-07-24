@@ -1,0 +1,48 @@
+name: Update Beta Changelog
+
+on:
+  release:
+    types: [published, prereleased]
+
+jobs:
+  update-changelog-beta:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get latest release info
+        id: release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const release = await github.rest.repos.getReleaseByTag({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag: context.payload.release.tag_name
+            });
+            core.setOutput("release_body", release.data.body);
+            core.setOutput("release_tag", release.data.tag_name);
+
+      - name: Update gpsd2mqtt_beta/CHANGELOG.md with collapsible old entries
+        run: |
+          FILE="gpsd2mqtt_beta/CHANGELOG.md"
+          TMP="$FILE.tmp"
+          # Write Changelog header if not present
+          if ! grep -q "# Changelog" $FILE; then echo "# Changelog" > $TMP; fi
+          # Prepend new entry
+          echo -e "## [${{ steps.release.outputs.release_tag }}] - $(date +%Y-%m-%d)\n${{ steps.release.outputs.release_body }}\n" >> $TMP
+          # Add collapsible block for previous entries
+          echo "<details><summary>Older changes</summary>" >> $TMP
+          # Find all lines after the first line starting with '## [' (the old entries)
+          awk 'BEGIN{found=0} /^## \[/{if(found++) exit} {if(found) print}' $FILE >> $TMP
+          echo "</details>" >> $TMP
+          mv $TMP $FILE
+
+      - name: Commit & push changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update gpsd2mqtt_beta CHANGELOG.md from GitHub release"
+          file_pattern: 'gpsd2mqtt_beta/CHANGELOG.md'
