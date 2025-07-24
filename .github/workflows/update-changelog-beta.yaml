@@ -26,6 +26,11 @@ jobs:
             core.setOutput("release_body", release.data.body);
             core.setOutput("release_tag", release.data.tag_name);
 
+      - name: Get default branch
+        id: get_branch
+        run: |
+          echo "branch=$(git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')" >> $GITHUB_OUTPUT
+
       - name: Update gpsd2mqtt_beta/CHANGELOG.md with collapsible old entries
         run: |
           FILE="gpsd2mqtt_beta/CHANGELOG.md"
@@ -46,3 +51,4 @@ jobs:
         with:
           commit_message: "chore: update gpsd2mqtt_beta CHANGELOG.md from GitHub release"
           file_pattern: 'gpsd2mqtt_beta/CHANGELOG.md'
+          branch: ${{ steps.get_branch.outputs.branch }}
