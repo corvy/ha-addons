@@ -17,7 +17,7 @@ jobs:
       - name: Fetch and checkout main branch
         run: |
           git fetch origin main
-          git checkout main
+          git checkout -B main origin/main
 
       - name: Update gpsd2mqtt_beta/CHANGELOG.md with collapsible old entries
         run: |
