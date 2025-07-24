@@ -8,28 +8,20 @@ jobs:
   update-changelog-beta:
     runs-on: ubuntu-latest
     steps:
+
       - name: Check out repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Get latest release info
-        id: release
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const release = await github.rest.repos.getReleaseByTag({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              tag: context.payload.release.tag_name
-            });
-            core.setOutput("release_body", release.data.body);
-            core.setOutput("release_tag", release.data.tag_name);
-
-      - name: Get default branch
+      - name: Get default branch name
         id: get_branch
         run: |
-          echo "branch=$(git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')" >> $GITHUB_OUTPUT
+          echo "branch=$(git remote show origin | awk '/HEAD branch/ {print $NF}')" >> $GITHUB_OUTPUT
+
+      - name: Check out default branch for commit
+        run: |
+          git checkout ${{ steps.get_branch.outputs.branch }}
 
       - name: Update gpsd2mqtt_beta/CHANGELOG.md with collapsible old entries
         run: |
