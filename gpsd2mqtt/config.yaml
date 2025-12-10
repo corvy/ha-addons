@@ -1,4 +1,4 @@
-name: "GPSD to MQTT (Beta)"
+name: "GPSD to MQTT"
 description: >-
   This addon will run GPSD and serve the data to MQTT and show a device tracker device (device_tracker.gpsd_location). The addon uses Mosquitto MQTT but can also be configued to another broker if wanted. 
   Remember to install Mosquitto or another broker before setting up this addon.
