@@ -1,0 +1,4 @@
+# exclude_list.txt for rsync
+exclude_list.txt
+README.md
+rsync.sh

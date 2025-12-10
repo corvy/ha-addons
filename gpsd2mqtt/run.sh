@@ -2,7 +2,10 @@
 
 # Get the device config
 CONFIG_PATH="/data/options.json"
+INPUT_TYPE=$(bashio::config 'input_type')
 DEVICE=$(bashio::config 'device')
+TCP_HOST=$(bashio::config 'tcp_host')
+TCP_PORT=$(bashio::config 'tcp_port')
 BAUDRATE=$(bashio::config 'baudrate' 9600)
 GPSD_OPTIONS=$(bashio::config 'gpsd_options') 
 GPSD_OPTIONS="${GPSD_OPTIONS} --nowait --readonly --listenany"
@@ -41,17 +44,37 @@ elif bashio::config.is_empty 'mqtt_username'; then
     exit 1 # Exit the script as we will not be able to authenticate to MQTT
 fi
 
-# Serial setup
-#
-# For serial interfaces, options such as low_latency are recommended
-# Also, http://catb.org/gpsd/upstream-bugs.html#tiocmwait recommends
-#   setting the baudrate with stty
-# Uncomment the following lines if using a serial device:
-#
+if [ "$INPUT_TYPE" = "serial" ]; then
+    echo "Setting up serial device with the following: ${DEVICE} ${BAUDRATE} cs${CHARSIZE} ${STOPBIT_CL} ${PARITY_CL} ${CONTROL}"
+    /bin/stty -F ${DEVICE} raw ${BAUDRATE} cs${CHARSIZE} ${PARITY_CL} ${CONTROL} ${STOPBIT_CL}
+    echo "Starting GPSD with serial device \"${DEVICE}\"..."
+    /usr/sbin/gpsd --version
+    /usr/sbin/gpsd ${GPSD_OPTIONS} -s ${BAUDRATE} ${DEVICE}
+elif [ "$INPUT_TYPE" = "tcp" ]; then
+    if [ -z "$TCP_HOST" ] || [ -z "$TCP_PORT" ]; then
+        echo "tcp_host og tcp_port må fylles ut for TCP-modus."
+        exit 1
+    fi
+    echo "Starting GPSD with TCP source ${TCP_HOST}:${TCP_PORT} ..."
+    /usr/sbin/gpsd --version
+    /usr/sbin/gpsd ${GPSD_OPTIONS} tcp://${TCP_HOST}:${TCP_PORT}
+else
+    echo "Unknown input_type: $INPUT_TYPE"
+    exit 1
+fi
 
-echo "Setting up serial device with the following: ${DEVICE} ${BAUDRATE} cs${CHARSIZE} ${STOPBIT_CL} ${PARITY_CL} ${CONTROL}"
-/bin/stty -F ${DEVICE} raw ${BAUDRATE} cs${CHARSIZE} ${PARITY_CL} ${CONTROL} ${STOPBIT_CL}
-# /bin/setserial ${DEVICE} low_latency
+#echo "Checking device settings"
+#/usr/bin/gpsctl
+
+# Start python script to publish results from GPSD to MQTT
+if [ $HA_AUTH = true ]; then
+    echo "Starting MQTT Publisher with integrated credentials ... "
+    else
+    echo "Starting MQTT Publisher with username ${MQTT_USER} ... "
+fi
+    
+python /gpsd2mqtt.py ${MQTT_USER} ${MQTT_PASSWORD}
+
 
 # Config file for gpsd server
 #usage: gpsd [OPTIONS] device...
@@ -72,19 +95,3 @@ echo "Setting up serial device with the following: ${DEVICE} ${BAUDRATE} cs${CHA
 #  -S, --port PORT           = set port for daemon, default 2947
 #  -s, --speed SPEED         = fix device speed to SPEED, default none
 #  -V, --version             = emit version and exit.
-
-echo "Starting GPSD with device \"${DEVICE}\"..."
-/usr/sbin/gpsd --version
-/usr/sbin/gpsd ${GPSD_OPTIONS} -s ${BAUDRATE} ${DEVICE}
-
-#echo "Checking device settings"
-#/usr/bin/gpsctl
-
-# Start python script to publish results from GPSD to MQTT
-if [ $HA_AUTH = true ]; then
-    echo "Starting MQTT Publisher with integrated credentials ... "
-    else
-    echo "Starting MQTT Publisher with username ${MQTT_USER} ... "
-fi
-    
-python /gpsd2mqtt.py ${MQTT_USER} ${MQTT_PASSWORD}

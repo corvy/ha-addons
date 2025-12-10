@@ -1,12 +1,12 @@
-name: "GPSD to MQTT"
+name: "GPSD to MQTT (Beta)"
 description: >-
   This addon will run GPSD and serve the data to MQTT and show a device tracker device (device_tracker.gpsd_location). The addon uses Mosquitto MQTT but can also be configued to another broker if wanted. 
   Remember to install Mosquitto or another broker before setting up this addon.
 
   Installation requires you to set up a username and password to publish to MQTT. Also you must select the serial device for GPSD in configuration.
 url: https://github.com/corvy/ha-addons/tree/main/gpsd2mqtt
-version: "2024.7.0"
-slug: "gpsd2mqtt"
+version: "2025.7.0b5"
+slug: "gpsd2mqtt_beta"
 codenotary: "stian@barmen.nu"
 init: false
 arch:
@@ -18,17 +18,18 @@ arch:
 services:
   - mqtt:need
 options:
-  device: null
+  input_type: serial
+  device: "/dev/ttyS0"
   publish_3d_fix_only: true
 schema:
-  device: device(subsystem=tty)
+  input_type: list(serial|tcp)
+  device: device(subsystem=tty)?
   baudrate: int?
   charsize: int?
   parity: bool?
   stopbit: int?
-  charsize: int?
-  parity: bool?
-  stopbit: int?
+  tcp_host: str?
+  tcp_port: int?
   publish_3d_fix_only: bool?
   min_n_satellites: int?
   publish_interval: int?
@@ -44,4 +45,4 @@ ports:
   2947/tcp: null
 devices:
   - /dev/pps0
-image: ghcr.io/corvy/{arch}-addon-gpsd2mqtt
+image: ghcr.io/corvy/{arch}-addon-gpsd2mqtt-beta

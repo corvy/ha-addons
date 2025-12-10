@@ -1,10 +1,20 @@
 # Changelog
 
+## [2025.12.0] - 2025-12-10
+- Add option to connect to TCP based device for GPS data
+- Upgrade to version 3.26.1 of GPSD
+- Upstream changes:
+  - Bump docker/login-action from 3.3.0 to 3.4.0
+  - Bump home-assistant/builder from 2024.08.2 to 2025.03.0
+
 ## [2025.7.0] - 2025-07-21
 - Apparmor fix,  add network capability. Thanks for PR from @cbiffle #46 
 - Upstream changes:
   - Bump actions/checkout from 4.1.7 to 4.2.2
   - Bump frenck/action-addon-linter from 2.15 to 2.18
+
+<details>
+<summary>Older changes</summary>
 
 ## [2024.9.0] - 2024-09-03
  - Added optional debug logging to check if all attributes received gets published to MQTT
@@ -134,5 +144,4 @@
 
 - First release added
 
-
-
+</details>
