@@ -5,7 +5,10 @@
 - Upgrade to version 3.26.1 of GPSD
 - Upstream changes:
   - Bump docker/login-action from 3.3.0 to 3.4.0
-  - Bump home-assistant/builder from 2024.08.2 to 2025.03.0
+  - Bump home-assistant/builder from 2024.08.2 to 2025.11.0
+  - Bump actions/checkout from 5 to 6
+  - Bump frenck/action_addon_linter from 2.18 to 2.21
+
 
 ## [2025.7.0] - 2025-07-21
 - Apparmor fix,  add network capability. Thanks for PR from @cbiffle #46 
