@@ -7,14 +7,10 @@ description: >-
 url: https://github.com/corvy/ha-addons/tree/main/gpsd2mqtt
 version: "2025.7.0b5"
 slug: "gpsd2mqtt_beta"
-codenotary: "stian@barmen.nu"
 init: false
 arch:
   - aarch64
   - amd64
-  - armhf
-  - armv7
-  - i386
 services:
   - mqtt:need
 options:

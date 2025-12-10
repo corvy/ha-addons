@@ -2,3 +2,4 @@
 exclude_list.txt
 README.md
 rsync.sh
+config.yaml
