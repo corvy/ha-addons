@@ -8,6 +8,7 @@
   - Bump home-assistant/builder from 2024.08.2 to 2025.11.0
   - Bump actions/checkout from 5 to 6
   - Bump frenck/action_addon_linter from 2.18 to 2.21
+  - Remove arch support for armhf, armv7 and i386 no longer supported as of Home Assistant 2025.12
 
 
 ## [2025.7.0] - 2025-07-21
