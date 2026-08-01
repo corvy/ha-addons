@@ -90,8 +90,12 @@ reports whether it started with integrated or manual credentials.
 ### Advanced
 
 **GPSD options** (`gpsd_options`) — extra flags passed to gpsd, for example
-`-D3 -N` for verbose gpsd logging. The add-on always passes `--nowait`,
+`-D3` for verbose gpsd logging. The add-on always passes `--nowait`,
 `--readonly` and `--listenany`.
+
+Do not pass `-N` (`--foreground`). The add-on starts gpsd as a background daemon
+and then hands over to the MQTT publisher, so keeping gpsd in the foreground
+means the publisher never starts and the add-on appears to hang.
 
 **Debug** (`debug`) — verbose add-on logging, including every raw GPS report.
 Useful when reporting a problem. The MQTT password is never written to the log.

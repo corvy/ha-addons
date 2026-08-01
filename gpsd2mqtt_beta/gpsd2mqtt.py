@@ -162,7 +162,16 @@ class Stats:
             f"in last {minutes} minutes."
         )
 
-        if self.max_satellites >= config.min_n_satellites:
+        if config.min_n_satellites == 0:
+            # No requirement configured, so there is nothing to fall short of --
+            # reporting "of required 0" just reads as noise.
+            logger.info(
+                "%s Achieved %s, position with %s GPS satellites.",
+                preamble,
+                self.accuracy,
+                self.max_satellites,
+            )
+        elif self.max_satellites >= config.min_n_satellites:
             logger.info(
                 "%s Achieved %s, position with %s of required %s GPS satellites.",
                 preamble,
