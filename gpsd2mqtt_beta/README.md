@@ -1,34 +1,17 @@
-# GPSD to MQTT
+# GPSD to MQTT (Beta)
 
-This is a [gpsd — a GPS service daemon](https://gpsd.gitlab.io/gpsd/) to MQTT Home Assistant Addon.
+> **This is the development channel and is not intended for general use.**
+> Install the stable [GPSD to MQTT](../gpsd2mqtt) add-on instead.
 
-This addon will run gpsd and serve the data to MQTT and show a device tracker device (device_tracker.gpsd_location). The addon uses Mosquitto MQTT but can also be configued to use another broker if wanted. The idea is to update the home zone in Home Assistant with the actual position from gpsd, in order to run automations based on actual position.
+This is a [gpsd — a GPS service daemon](https://gpsd.gitlab.io/gpsd/) to MQTT Home Assistant add-on.
 
-Remember to install Mosquitto or another broker before setting up this addon.
+It runs gpsd and publishes the position to MQTT as a device tracker
+(`device_tracker.gps_location`), so Home Assistant's home zone can follow your
+actual position and automations can act on it. Mosquitto is the expected broker,
+but another one can be configured.
 
-If using Mosquitto on Home Assistant, the addon will use integrated authentication to log in. Normally you should not need to configure username or password for MQTT. If you have set up a custom MQTT broker, you must manually configure username and password (and potentially more).
+Changes land here first, get tested, and are then promoted to the stable add-on
+with `./rsync.sh`.
 
-Also you must select the serial device for GPSD in the configuration.
-
-The configuration is done via the addon GUI inside Home Assistant after installation.
-
-## Example automation to dynamically update position
-
-    alias: Dynamic Update Home
-    description: Update the Home location for Home Assistant based on GPS information
-    trigger:
-      - platform: state
-        entity_id:
-          - device_tracker.gps_location
-        attribute: latitude
-      - platform: state
-        entity_id:
-          - device_tracker.gps_location
-        attribute: longitude
-    condition: []
-    action:
-      - service: homeassistant.set_location
-        data_template:
-          latitude: "{{ state_attr('device_tracker.gps_location', 'latitude') }}"
-          longitude: "{{ state_attr('device_tracker.gps_location', 'longitude') }}"
-    mode: single
+See [DOCS.md](./DOCS.md) for setup, all configuration options, the entities the
+add-on creates, and an example automation.

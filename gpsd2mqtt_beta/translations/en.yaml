@@ -24,9 +24,6 @@ configuration:
   mqtt_pw:
     name: MQTT Password
     description: Only used if you use a custom username, disregarded if using integrated authentication.
-  mqtt_state:
-    name: MQTT State Topic
-    description: If you need to change topic it can be done here. WARNING, this might break functionality so please leave at deafult unless you know exactly what you are doing.
   publish_3d_fix_only:
     name: 3D Fix Only
     description: Only publish updated position when the GPS has a good fix (3D Fix - minimum 3 satellites for positioning)

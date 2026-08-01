@@ -1,5 +1,12 @@
 # exclude_list.txt for rsync
+# Files listed here stay distinct between the beta and release add-ons and are
+# never promoted by rsync.sh.
 exclude_list.txt
 README.md
 rsync.sh
 config.yaml
+# The two add-ons keep separate release histories -- without this, promoting
+# beta would overwrite the release changelog with the beta one.
+CHANGELOG.md
+# Local artefacts from running python here.
+__pycache__

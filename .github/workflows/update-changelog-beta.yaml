@@ -4,6 +4,9 @@ on:
   release:
     types: [published, prereleased]
 
+permissions:
+  contents: write
+
 jobs:
   update-changelog-beta:
     runs-on: ubuntu-latest
@@ -12,36 +15,53 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: main
+          # Full history so the rebase before pushing has something to work with.
+          fetch-depth: 0
 
       - name: Get latest release info
         id: release
-        uses: actions/github-script
+        uses: actions/github-script@v7
         with:
           script: |
-            const release = await github.rest.repos.getReleaseByTag({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              tag: context.payload.release.tag_name
-            });
-            core.setOutput("release_body", release.data.body);
-            core.setOutput("release_tag", release.data.tag_name);
+            core.setOutput("release_body", context.payload.release.body || "");
+            core.setOutput("release_tag", context.payload.release.tag_name);
 
-      - name: Update gpsd2mqtt_beta/CHANGELOG.md with collapsible old entries
+      - name: Prepend release notes to gpsd2mqtt_beta/CHANGELOG.md
+        env:
+          # Passed through the environment rather than interpolated into the
+          # script: release notes are free text and would otherwise be able to
+          # inject shell commands here.
+          RELEASE_TAG: ${{ steps.release.outputs.release_tag }}
+          RELEASE_BODY: ${{ steps.release.outputs.release_body }}
         run: |
+          set -euo pipefail
           FILE="gpsd2mqtt_beta/CHANGELOG.md"
-          TMP="$FILE.tmp"
-          if ! grep -q "# Changelog" $FILE; then echo "# Changelog" > $TMP; fi
-          echo -e "## [${{ steps.release.outputs.release_tag }}] - date -u +%Y-%m-%d\n${{ steps.release.outputs.release_body }}\n" >> $TMP
-          echo "<details><summary>Older changes</summary>" >> $TMP
-          awk 'BEGIN{found=0} /^## \[/{if(found++) exit} {if(found) print}' $FILE >> $TMP
-          echo "</details>" >> $TMP
-          mv $TMP $FILE
+          TMP="$(mktemp)"
 
-      - name: Commit and force-push changelog to main
+          # Rewrite as: header, the new entry, then the previous file verbatim
+          # minus its old header. Existing entries are never rewritten or
+          # dropped -- collapsing old ones into <details> stays a manual call.
+          {
+            echo "# Changelog"
+            echo
+            echo "## [${RELEASE_TAG}] - $(date -u +%Y-%m-%d)"
+            printf '%s\n' "${RELEASE_BODY}"
+            echo
+            awk 'NR==1 && /^# Changelog/ { next } { print }' "$FILE"
+          } > "$TMP"
+
+          mv "$TMP" "$FILE"
+
+      - name: Commit and push changelog to main
         run: |
+          set -euo pipefail
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
           git add gpsd2mqtt_beta/CHANGELOG.md
-          git commit -m "chore: update gpsd2mqtt_beta CHANGELOG.md from GitHub release" || true
+          if git diff --cached --quiet; then
+            echo "No changelog changes to commit."
+            exit 0
+          fi
+          git commit -m "chore: update gpsd2mqtt_beta CHANGELOG.md from GitHub release"
           git pull --rebase origin main
           git push origin main
