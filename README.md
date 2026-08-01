@@ -16,39 +16,27 @@ This repository contains the following add-ons
 
 ![Supports aarch64 Architecture][aarch64-shield]
 ![Supports amd64 Architecture][amd64-shield]
-![Supports armhf Architecture][armhf-shield]
-![Supports armv7 Architecture][armv7-shield]
-![Supports i386 Architecture][i386-shield]
 
-### [GPSD to MQTT Beta](./gpsd2mqtt)
+Run gpsd and publish the position to MQTT as a device tracker. This is the one to install.
 
-When there is development going on with addon the development will happen in de beta version. 
+### [GPSD to MQTT Beta](./gpsd2mqtt_beta)
+
+Development channel for the add-on above, flagged `experimental`. Not intended for general use — install the stable version instead.
 
 ### [Signal K to MQTT](./signalk2mqtt)
 
 This add-on does not work, will be deleted. 
 
-<!--
+## Development
 
-Notes to developers after forking or using the github template feature:
-- While developing comment out the 'image' key from 'example/config.yaml' to make the supervisor build the addon
-  - Remember to put this back when pushing up your changes.
-- When you merge to the 'main' branch of your repository a new build will be triggered.
-  - Make sure you adjust the 'version' key in 'example/config.yaml' when you do that.
-  - Make sure you update 'example/CHANGELOG.md' when you do that.
-  - The first time this runs you might need to adjust the image configuration on github container registry to make it public
-  - You may also need to adjust the github Actions configuration (Settings > Actions > General > Workflow > Read & Write)
-- Adjust the 'image' key in 'example/config.yaml' so it points to your username instead of 'home-assistant'.
-  - This is where the build images will be published to.
-- Rename the example directory.
-  - The 'slug' key in 'example/config.yaml' should match the directory name.
-- Adjust all keys/url's that points to 'home-assistant' to now point to your user/fork.
-- Share your repository on the forums https://community.home-assistant.io/c/projects/9
-- Do awesome stuff!
- -->
+Changes are made in `gpsd2mqtt_beta/` and promoted to `gpsd2mqtt/` by running
+`./rsync.sh` from inside that directory. `config.yaml`, `CHANGELOG.md`,
+`README.md` and the rsync files themselves stay separate between the two — see
+`gpsd2mqtt_beta/exclude_list.txt`.
+
+Remember to bump the `version` key in the relevant `config.yaml` and add a
+`CHANGELOG.md` entry; the builder workflow publishes a new image whenever
+`config.yaml`, `Dockerfile` or `build.yaml` changes.
 
 [aarch64-shield]: https://img.shields.io/badge/aarch64-yes-green.svg
 [amd64-shield]: https://img.shields.io/badge/amd64-yes-green.svg
-[armhf-shield]: https://img.shields.io/badge/armhf-yes-green.svg
-[armv7-shield]: https://img.shields.io/badge/armv7-yes-green.svg
-[i386-shield]: https://img.shields.io/badge/i386-yes-green.svg
