@@ -38,16 +38,30 @@ jobs:
           FILE="gpsd2mqtt_beta/CHANGELOG.md"
           TMP="$(mktemp)"
 
-          # Rewrite as: header, the new entry, then the previous file verbatim
-          # minus its old header. Existing entries are never rewritten or
-          # dropped -- collapsing old ones into <details> stays a manual call.
+          # Only the newest entry stays visible; everything else is folded into
+          # one <details> block. The old wrapper lines are stripped and rewritten
+          # each run rather than nested, so this is idempotent -- running it
+          # twice does not produce <details> inside <details>. Entry text itself
+          # is never rewritten or dropped.
           {
             echo "# Changelog"
             echo
             echo "## [${RELEASE_TAG}] - $(date -u +%Y-%m-%d)"
             printf '%s\n' "${RELEASE_BODY}"
             echo
-            awk 'NR==1 && /^# Changelog/ { next } { print }' "$FILE"
+            echo "<details>"
+            echo "<summary>Older changes</summary>"
+            echo
+            awk '
+              NR == 1 && /^# Changelog/           { next }
+              /^<details>[[:space:]]*$/           { next }
+              /^<summary>Older changes<\/summary>[[:space:]]*$/ { next }
+              /^<\/details>[[:space:]]*$/         { next }
+              # Drop leading blanks, otherwise one accumulates per release.
+              !started && /^[[:space:]]*$/        { next }
+              { started = 1; print }
+            ' "$FILE"
+            echo "</details>"
           } > "$TMP"
 
           mv "$TMP" "$FILE"

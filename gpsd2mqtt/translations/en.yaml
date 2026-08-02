@@ -24,9 +24,6 @@ configuration:
   mqtt_pw:
     name: MQTT Password
     description: Only used if you use a custom username, disregarded if using integrated authentication.
-  mqtt_state:
-    name: MQTT State Topic
-    description: If you need to change topic it can be done here. WARNING, this might break functionality so please leave at deafult unless you know exactly what you are doing.
   publish_3d_fix_only:
     name: 3D Fix Only
     description: Only publish updated position when the GPS has a good fix (3D Fix - minimum 3 satellites for positioning)
@@ -38,7 +35,7 @@ configuration:
     description: Enable debugging to get more info in the logs in case of problems.
   gpsd_options:
     name: GPSD options
-    description: Add aditional settings you want to pass to GPSD, could be "-D3 -N" for example for debugging in logs
+    description: Additional settings to pass to GPSD, for example "-D3" for verbose GPSD output in the log. Do not use "-N" - it keeps GPSD in the foreground and the add-on will never finish starting.
   baudrate:
     name: Baudrate
     description: Serial device baudrate, defaults to 9600

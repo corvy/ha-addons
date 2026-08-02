@@ -1,5 +1,16 @@
 # Changelog
 
+## [2026.8.0b2] - 2026-08-01
+
+### Changed
+- The log summary no longer says "of required 0 GPS satellites" when no satellite requirement is configured
+
+### Fixed
+- The GPSD options help text no longer suggests "-N". That flag keeps GPSD in the foreground and stops the add-on from finishing startup
+
+<details>
+<summary>Older changes</summary>
+
 ## [2026.8.0b1] - 2026-08-01
 - Upgrade to version 3.27.3 of GPSD, which includes the security fixes from 3.27.1 (CVE-2025-67268 and CVE-2025-67269)
 - Fix: satellite (Sky Data) updates ignored the configured update interval and were published continuously whenever position updates were being held back by the required-satellites setting
@@ -23,9 +34,6 @@
 - Upstream changes:
   - Bump actions/checkout from 4.1.7 to 4.2.2
   - Bump frenck/action-addon-linter from 2.15 to 2.18
-
-<details>
-<summary>Older changes</summary>
 
 ## [2024.9.0] - 2024-09-03
  - Added optional debug logging to check if all attributes received gets published to MQTT
