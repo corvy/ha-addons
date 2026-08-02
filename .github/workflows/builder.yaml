@@ -38,17 +38,14 @@ jobs:
           set -euo pipefail
 
           if [[ "${EVENT_NAME}" == "pull_request" ]]; then
-            # Diff against the merge base, not the base tip. Comparing to the tip
-            # requires the PR head to be a strict descendant of base, which it is
-            # not after main receives a merge commit that dev never got -- that is
-            # what the previous action failed on.
+            # Merge base, not the base tip: comparing to the tip would require
+            # the PR head to be a strict descendant of base.
             base="$(git merge-base "${PR_BASE_SHA}" "${PR_HEAD_SHA}")"
             head="${PR_HEAD_SHA}"
           else
             base="${PUSH_BEFORE}"
             head="${PUSH_AFTER}"
-            # An all-zero "before" means a new branch or a force push, where there
-            # is no previous state to compare against.
+            # All-zero means a new branch or force push: no previous state.
             if [[ -z "${base}" || "${base}" =~ ^0+$ ]] || ! git cat-file -e "${base}^{commit}" 2>/dev/null; then
               base="${head}^"
             fi
@@ -69,9 +66,7 @@ jobs:
           declare -a changed_addons=()
           for addon in ${{ steps.addons.outputs.addons }}; do
             for file in ${{ env.MONITORED_FILES }}; do
-              # Exact path match. The previous compare was an unanchored regex and
-              # worked only by luck of the directory names. The second grep covers
-              # `rootfs`, which is a directory rather than a file.
+              # Exact path match; the second grep covers rootfs, a directory.
               if grep -qxF "${addon}/${file}" /tmp/changed_files.txt \
                 || grep -qF "${addon}/${file}/" /tmp/changed_files.txt; then
                 changed_addons+=("${addon}")

@@ -7,7 +7,6 @@ coverage.
 """
 
 import dataclasses
-import datetime
 import hashlib
 import json
 import logging
@@ -31,9 +30,32 @@ DEPRECATED_CONFIG_TOPIC = "homeassistant/device_tracker/gpsd/config"
 RECONNECT_MIN_DELAY = 5
 RECONNECT_MAX_DELAY = 300
 
-# Pause before reopening the gpsd stream after it drops, so a gpsd that is down
-# does not spin this loop at full speed.
+# Availability payloads. "offline" is also registered as the last will.
+PAYLOAD_ONLINE = "online"
+PAYLOAD_OFFLINE = "offline"
+
+# CONNACK codes that retrying cannot fix; the configuration has to change.
+FATAL_CONNECT_CODES = {
+    4: "bad username or password",
+    5: "not authorised",
+}
+
+# Seconds to wait for the broker before giving up and exiting non-zero.
+CONNECT_TIMEOUT = 120
+
+# Grace for the final "offline" publish to reach the socket before shutdown.
+SHUTDOWN_PUBLISH_TIMEOUT = 2
+
+# Pause before reopening the gpsd stream, so a dead gpsd does not spin the loop.
 GPSD_RETRY_DELAY = 5
+
+# Hang-breaker, not a poll interval. gpsd emits about once a second, so this
+# only fires when gpsd is wedged. A timeout ends the stream rather than pausing
+# it: gpsdclient reads through makefile(), whose buffer is undefined after one.
+GPSD_STREAM_TIMEOUT = 30
+
+# Consecutive gpsd sessions yielding no reports before treating gpsd as gone.
+MAX_BARREN_SESSIONS = 12
 
 # gpsd TPV "mode" values, see https://gpsd.gitlab.io/gpsd/gpsd_json.html
 FIX_MODES = {1: "No fix", 2: "2D fix", 3: "3D fix"}
@@ -112,6 +134,7 @@ class Topics:
     sky_config: str
     sky_state: str
     sky_attr: str
+    availability: str
 
     @classmethod
     def for_device(cls, unique_id):
@@ -121,23 +144,28 @@ class Topics:
             sky_config=f"homeassistant/sensor/gpsd2mqtt/{unique_id}_sky/config",
             sky_state=f"gpsd2mqtt/{unique_id}_sky/state",
             sky_attr=f"gpsd2mqtt/{unique_id}_sky/attribute",
+            availability=f"gpsd2mqtt/{unique_id}/availability",
         )
 
 
 class Throttle:
-    """Rate limiter for publishing. An interval of 0 disables throttling."""
+    """Rate limiter for publishing. An interval of 0 disables throttling.
+
+    Monotonic: chrony, often fed by gpsd itself, steps the system clock, and a
+    backwards step would withhold every update until real time caught up.
+    """
 
     def __init__(self, interval):
         self._interval = interval
-        self._last = datetime.datetime.now()
+        self._last = time.monotonic()
 
     def ready(self):
         if self._interval == 0:
             return True
-        return (datetime.datetime.now() - self._last).total_seconds() >= self._interval
+        return time.monotonic() - self._last >= self._interval
 
     def mark(self):
-        self._last = datetime.datetime.now()
+        self._last = time.monotonic()
 
 
 @dataclasses.dataclass
@@ -146,20 +174,21 @@ class Stats:
 
     published_updates: int = 0
     max_satellites: int = 0
-    accuracy: str = None
-    last_summary: datetime.datetime = dataclasses.field(
-        default_factory=datetime.datetime.now
-    )
+    accuracy: str = "no fix yet"
+    # Monotonic, for the same reason as Throttle.
+    last_summary: float = dataclasses.field(default_factory=time.monotonic)
 
     def due(self, summary_interval):
-        elapsed = (datetime.datetime.now() - self.last_summary).total_seconds()
-        return elapsed >= summary_interval
+        return time.monotonic() - self.last_summary >= summary_interval
 
     def emit(self, config):
-        minutes = (datetime.datetime.now() - self.last_summary).total_seconds() // 60
+        elapsed = time.monotonic() - self.last_summary
+        minutes = int(elapsed // 60)
+        # summary_interval can be under a minute, where "0 minutes" reads as a bug.
+        span = f"{minutes} minutes" if minutes else f"{int(elapsed)} seconds"
         preamble = (
             f"Published {self.published_updates} updates to the device_tracker "
-            f"in last {minutes} minutes."
+            f"in last {span}."
         )
 
         if config.min_n_satellites == 0:
@@ -191,7 +220,7 @@ class Stats:
 
         self.published_updates = 0
         self.max_satellites = 0
-        self.last_summary = datetime.datetime.now()
+        self.last_summary = time.monotonic()
 
 
 def get_unique_identifier():
@@ -215,10 +244,20 @@ def publish_discovery(client, topics, unique_id):
     permanently unavailable device on every restart until someone manually
     clears the topic. Re-announcing on `homeassistant/status` covers the restart
     case instead, and leaves nothing behind.
+
+    Called from on_connect, so it re-fires on every reconnect. Nothing is
+    retained, so after a broker restart no copy of the config exists anywhere.
     """
     device = {
         "name": "GPSD Service",
         "identifiers": f"gpsd2mqtt_{unique_id}",
+    }
+
+    # Marks both entities unavailable on "offline" or on the last will.
+    availability = {
+        "availability_topic": topics.availability,
+        "payload_available": PAYLOAD_ONLINE,
+        "payload_not_available": PAYLOAD_OFFLINE,
     }
 
     device_tracker = {
@@ -231,6 +270,7 @@ def publish_discovery(client, topics, unique_id):
         "payload_reset": "check_zone",
         "object_id": "gps_location",
         "icon": "mdi:map-marker",
+        **availability,
         "device": {
             **device,
             "configuration_url": "https://github.com/corvy/ha-addons/tree/main/gpsd2mqtt",
@@ -246,6 +286,7 @@ def publish_discovery(client, topics, unique_id):
         "platform": "mqtt",
         "state_topic": topics.sky_state,
         "json_attributes_topic": topics.sky_attr,
+        **availability,
         "device": device,
     }
 
@@ -258,9 +299,28 @@ def publish_discovery(client, topics, unique_id):
     client.publish(topics.config, json.dumps(device_tracker))
     client.publish(topics.sky_config, json.dumps(sky_sensor))
 
+    # After the configs, so Home Assistant knows which topic to watch first.
+    client.publish(topics.availability, PAYLOAD_ONLINE)
+
     logger.info("Published MQTT discovery message to topic: %s", topics.config)
     logger.debug("Device tracker discovery payload: %s", device_tracker)
     logger.debug("Sky sensor discovery payload: %s", sky_sensor)
+
+
+class ConnectionState:
+    """Last CONNACK result, written by the paho thread and read by main()."""
+
+    def __init__(self):
+        self.last_rc = None
+
+    @property
+    def is_fatal(self):
+        return self.last_rc in FATAL_CONNECT_CODES
+
+    def describe(self):
+        if self.last_rc is None:
+            return "no response from broker yet"
+        return FATAL_CONNECT_CODES.get(self.last_rc, f"return code {self.last_rc}")
 
 
 def build_client(config, topics, unique_id):
@@ -269,11 +329,15 @@ def build_client(config, topics, unique_id):
     Reconnection is left to paho: loop_start() retries in the background using
     the backoff set by reconnect_delay_set(), and on_connect runs again on every
     successful reconnect.
+
+    Returns the client and the ConnectionState its callbacks write to.
     """
+    state = ConnectionState()
 
     def on_connect(client, userdata, flags, rc):
+        state.last_rc = rc
         if rc != 0:
-            logger.error("Failed to connect, return code: %s", rc)
+            logger.error("Failed to connect: %s", state.describe())
             return
 
         logger.info("Connected to MQTT broker")
@@ -283,6 +347,9 @@ def build_client(config, topics, unique_id):
         logger.info(
             "Subscribe to MQTT topic %s to listen for HA reboots.", HA_STATUS_TOPIC
         )
+        # On every connect, not just the first: nothing is retained, so a broker
+        # restart leaves Home Assistant with no config to rediscover us from.
+        publish_discovery(client, topics, unique_id)
 
     def on_disconnect(client, userdata, rc):
         if rc != 0:
@@ -313,7 +380,11 @@ def build_client(config, topics, unique_id):
         min_delay=RECONNECT_MIN_DELAY, max_delay=RECONNECT_MAX_DELAY
     )
 
-    return client
+    # Unretained, so nothing lingers on the broker after an uninstall. Must be
+    # set before connecting; paho sends it as part of CONNECT.
+    client.will_set(topics.availability, PAYLOAD_OFFLINE, retain=False)
+
+    return client, state
 
 
 def normalise_tpv(report):
@@ -384,7 +455,11 @@ def handle_tpv(client, topics, report, config, throttle, stats):
 
 
 def stream_gps(client, topics, config, stats):
-    """Consume one gpsd session, publishing reports until the stream ends."""
+    """Consume one gpsd session, publishing until the stream ends.
+
+    Returns the number of reports seen, so the caller can tell a gpsd that is
+    restarting from one that is simply not there.
+    """
     # SKY and TPV each get their own throttle. Sharing a single timestamp meant
     # SKY updates were only rate-limited when a TPV update happened to reset the
     # clock, so they streamed unthrottled whenever TPV was being withheld.
@@ -393,11 +468,13 @@ def stream_gps(client, topics, config, stats):
 
     # Withhold position updates until the configured satellite count is met.
     publish_position = config.min_n_satellites == 0
+    seen = 0
 
-    with GPSDClient(host=GPSD_HOST) as gps_client:
+    with GPSDClient(host=GPSD_HOST, timeout=GPSD_STREAM_TIMEOUT) as gps_client:
         for raw_report in gps_client.json_stream():
+            seen += 1
             if not _running:
-                return
+                return seen
 
             try:
                 report = json.loads(raw_report)
@@ -418,15 +495,53 @@ def stream_gps(client, topics, config, stats):
             if stats.due(config.summary_interval):
                 stats.emit(config)
 
+    return seen
 
-def wait_for_connection(client):
-    """Block until the broker accepts us, or until we are asked to shut down."""
+
+def interruptible_sleep(seconds):
+    """Sleep in slices so a shutdown request is noticed.
+
+    time.sleep() is resumed after a signal handler runs (PEP 475), so a plain
+    sleep would wait out its full duration on SIGTERM.
+    """
+    deadline = time.monotonic() + seconds
+    while _running and time.monotonic() < deadline:
+        time.sleep(0.25)
+
+
+def wait_for_connection(client, config, state):
+    """Block until the broker accepts us. Returns True if it did."""
     waited = 0
     while _running and not client.is_connected():
+        if state.is_fatal:
+            logger.error(
+                "MQTT broker rejected the connection: %s. Check the MQTT username "
+                "and password in the add-on configuration.",
+                state.describe(),
+            )
+            return False
+
+        if waited >= CONNECT_TIMEOUT:
+            logger.error(
+                "Gave up waiting for MQTT broker %s:%s after %s seconds (%s).",
+                config.mqtt_broker,
+                config.mqtt_port,
+                CONNECT_TIMEOUT,
+                state.describe(),
+            )
+            return False
+
         time.sleep(1)
         waited += 1
-        if waited % 5 == 0:
-            logger.info("Verifying MQTT Connection ....")
+        if waited % 15 == 0:
+            logger.info(
+                "Still waiting for MQTT broker %s:%s (%s).",
+                config.mqtt_broker,
+                config.mqtt_port,
+                state.describe(),
+            )
+
+    return client.is_connected()
 
 
 def handle_shutdown(signum, frame):
@@ -453,36 +568,82 @@ def main():
     logger.debug("MQTT Config: %s", topics.config)
     logger.debug("MQTT Attribute: %s", topics.attr)
 
-    client = build_client(config, topics, unique_id)
+    client, state = build_client(config, topics, unique_id)
 
     # connect_async tolerates a broker that is not up yet: loop_start keeps
     # retrying in the background instead of raising here.
     logger.info("Connecting to MQTT broker")
     client.connect_async(config.mqtt_broker, config.mqtt_port)
     client.loop_start()
-    wait_for_connection(client)
 
-    if _running:
-        publish_discovery(client, topics, unique_id)
+    # paho drops QoS 0 publishes while disconnected, so wait before streaming.
+    # Discovery is sent from on_connect.
+    if not wait_for_connection(client, config, state):
+        client.loop_stop()
+        return 0 if not _running else 1
 
+    exit_code = 0
     stats = Stats()
+    barren_sessions = 0
+
     while _running:
         logger.info("Starting location detection and sending GPS updates.")
         try:
-            stream_gps(client, topics, config, stats)
+            seen = stream_gps(client, topics, config, stats)
+        except TimeoutError:
+            # gpsd went quiet; the stream can only be reopened, not resumed.
+            seen = 0
+            logger.info(
+                "No data from gpsd in %s seconds, reopening the stream.",
+                GPSD_STREAM_TIMEOUT,
+            )
         except Exception as err:  # gpsd restarting, socket dropped, bad frame
+            seen = 0
             logger.error("Lost connection to gpsd: %s", err)
+        else:
+            logger.info("gpsd stream ended after %s reports.", seen)
+
+        # A session yielding nothing means gpsd is absent, not just restarting.
+        # Enough in a row and we exit non-zero so the Supervisor restarts the
+        # add-on, and gpsd with it.
+        barren_sessions = barren_sessions + 1 if seen == 0 else 0
+        if barren_sessions >= MAX_BARREN_SESSIONS:
+            logger.error(
+                "No data from gpsd across %s attempts. Giving up so the add-on "
+                "is restarted -- check the GPS device and the log above for gpsd "
+                "startup errors.",
+                barren_sessions,
+            )
+            exit_code = 1
+            break
 
         if _running:
             logger.info(
                 "gpsd stream ended, reconnecting in %s seconds.", GPSD_RETRY_DELAY
             )
-            time.sleep(GPSD_RETRY_DELAY)
+            interruptible_sleep(GPSD_RETRY_DELAY)
 
     logger.info("Disconnecting from MQTT broker.")
-    client.loop_stop()
+    publish_offline(client, topics)
+    # disconnect() before loop_stop(): the network loop writes the packet.
     client.disconnect()
+    client.loop_stop()
+    return exit_code
+
+
+def publish_offline(client, topics):
+    """Announce departure and wait for it to reach the socket.
+
+    The broker discards the last will on a clean disconnect, so a clean stop has
+    to say so itself. publish() only queues, and the network thread is stopping.
+    """
+    try:
+        info = client.publish(topics.availability, PAYLOAD_OFFLINE)
+        info.wait_for_publish(timeout=SHUTDOWN_PUBLISH_TIMEOUT)
+    except (ValueError, RuntimeError) as err:
+        # Not worth failing a shutdown over; the broker sends the will instead.
+        logger.debug("Could not publish offline availability: %s", err)
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

@@ -5,7 +5,7 @@ description: >-
 
   Installation requires you to set up a username and password to publish to MQTT. Also you must select the serial device for GPSD in configuration.
 url: https://github.com/corvy/ha-addons/tree/main/gpsd2mqtt_beta
-version: "2026.8.1b1"
+version: "2026.8.1b2"
 slug: "gpsd2mqtt_beta"
 init: false
 # Development channel for gpsd2mqtt. Not intended for general use -- install the
@@ -41,6 +41,10 @@ schema:
   debug: bool?
 ports:
   2947/tcp: null
+# Restarts the add-on when gpsd stops answering; nothing else supervises it.
+# Reaches the container address regardless of the port mapping above, which is
+# why gpsd always runs with --listenany.
+watchdog: tcp://[HOST]:2947
 devices:
   - /dev/pps0
 image: ghcr.io/corvy/{arch}-addon-gpsd2mqtt-beta

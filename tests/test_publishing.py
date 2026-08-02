@@ -68,9 +68,70 @@ def test_both_entities_share_one_device(module, client, topics):
 def test_discovery_payloads_are_valid_json(module, client, topics):
     module.publish_discovery(client, topics, "abc12345")
 
-    for call in client.published:
-        if call.payload:
-            json.loads(call.payload)
+    for topic in (topics.config, topics.sky_config):
+        json.loads(client.for_topic(topic)[0].payload)
+
+
+# --- availability ----------------------------------------------------------
+
+
+def test_discovery_announces_us_as_online(module, client, topics):
+    module.publish_discovery(client, topics, "abc12345")
+
+    calls = client.for_topic(topics.availability)
+
+    assert len(calls) == 1
+    assert calls[0].payload == module.PAYLOAD_ONLINE
+
+
+def test_online_is_announced_after_the_configs(module, client, topics):
+    """Home Assistant needs to know which topic to watch before being told we are up."""
+    module.publish_discovery(client, topics, "abc12345")
+
+    order = client.topics()
+
+    assert order.index(topics.availability) > order.index(topics.config)
+    assert order.index(topics.availability) > order.index(topics.sky_config)
+
+
+def test_availability_is_not_retained(module, client, topics):
+    """Same reasoning as discovery: nothing may outlive the add-on on the broker."""
+    module.publish_discovery(client, topics, "abc12345")
+
+    assert client.for_topic(topics.availability)[0].retain is False
+
+
+def test_both_entities_declare_the_availability_topic(module, client, topics):
+    module.publish_discovery(client, topics, "abc12345")
+
+    tracker = client.for_topic(topics.config)[0].json()
+    sky = client.for_topic(topics.sky_config)[0].json()
+
+    for payload in (tracker, sky):
+        assert payload["availability_topic"] == topics.availability
+        assert payload["payload_available"] == module.PAYLOAD_ONLINE
+        assert payload["payload_not_available"] == module.PAYLOAD_OFFLINE
+
+
+def test_shutdown_announces_offline(module, client, topics):
+    module.publish_offline(client, topics)
+
+    calls = client.for_topic(topics.availability)
+
+    assert len(calls) == 1
+    assert calls[0].payload == module.PAYLOAD_OFFLINE
+    assert calls[0].retain is False
+
+
+def test_shutdown_survives_a_broker_that_has_already_gone(module, client, topics):
+    """A failed goodbye must not turn a clean stop into a crash."""
+
+    def exploding_publish(*args, **kwargs):
+        raise RuntimeError("Message publish failed: The client is not currently connected.")
+
+    client.publish = exploding_publish
+
+    module.publish_offline(client, topics)  # must not raise
 
 
 # --- SKY -------------------------------------------------------------------

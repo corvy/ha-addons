@@ -73,6 +73,9 @@ else
     echo "Starting MQTT Publisher with username ${MQTT_USER} ... "
 fi
 
+# Python is unpinned and follows the Alpine base; log which one is running.
+echo "Using $(python3 --version 2>&1)"
+
 # Credentials go through the environment rather than the command line: argv
 # would expose the password in `ps`, and an unquoted password containing spaces
 # would be split into separate arguments.
