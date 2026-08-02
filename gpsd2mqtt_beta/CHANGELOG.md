@@ -1,5 +1,16 @@
 # Changelog
 
+## [2026.8.1b1] - 2026-08-02
+
+### Changed
+- No functional change to the add-on. This beta exists to exercise the automated GitHub release workflow and the rewritten changed-file detection in the build workflow for the first time, before either is relied on for a release carrying real changes
+
+### Added
+- Automated tests and linting now run on every pull request, covering option parsing, GPS report transformation, publish throttling and the MQTT discovery payloads. Test code is not part of the add-on image
+
+<details>
+<summary>Older changes</summary>
+
 ## [2026.8.0b2] - 2026-08-01
 
 ### Changed
@@ -7,9 +18,6 @@
 
 ### Fixed
 - The GPSD options help text no longer suggests "-N". That flag keeps GPSD in the foreground and stops the add-on from finishing startup
-
-<details>
-<summary>Older changes</summary>
 
 ## [2026.8.0b1] - 2026-08-01
 - Upgrade to version 3.27.3 of GPSD, which includes the security fixes from 3.27.1 (CVE-2025-67268 and CVE-2025-67269)
