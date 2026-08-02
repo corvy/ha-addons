@@ -4,7 +4,7 @@
 
 ### Added
 - The device tracker and Sky Data sensor now report availability. They show as unavailable when the add-on stops, whether it stops cleanly or crashes, and leave nothing behind on the broker when the add-on is uninstalled
-- A watchdog restarts the add-on if GPSD stops responding. Previously a dead GPSD left the add-on running and apparently healthy
+- The add-on now reports itself unhealthy when GPSD stops responding, so enabling **Watchdog** on the Info tab restarts it automatically. Previously a dead GPSD left the add-on running and apparently healthy
 
 ### Fixed
 - Publishing could stall for as long as the system clock was stepped backwards, which happens on installs where GPS is also used as a time source

@@ -128,9 +128,10 @@ entities simply disappear rather than lingering as permanently unavailable.
 The add-on restarts itself when things go wrong, rather than sitting there looking
 healthy:
 
-- If gpsd stops responding, Home Assistant's watchdog notices port 2947 has gone
-  quiet and restarts the add-on. The add-on also gives up on its own after about a
-  minute without any GPS data.
+- If gpsd stops responding, the add-on reports itself unhealthy. Enable
+  **Watchdog** on the add-on's Info tab and Home Assistant will restart it. The
+  add-on also gives up on its own after about a minute without any GPS data, which
+  restarts it the same way.
 - If the MQTT broker restarts, the add-on reconnects and re-announces its entities
   automatically. No Home Assistant restart is needed.
 - If the MQTT credentials are wrong, the add-on stops with a clear error in the log
@@ -173,9 +174,10 @@ improve the receiver's view of the sky. A cold start can take several minutes.
 broker. Check the add-on log — if it stopped on an MQTT error, the reason is the
 last line.
 
-**The add-on keeps restarting.** The watchdog restarts it when gpsd stops
-answering. Look for gpsd's own startup errors near the top of the log; the usual
-cause is a serial device that is missing, or is held open by something else.
+**The add-on keeps restarting.** With **Watchdog** enabled, Home Assistant
+restarts it whenever gpsd stops answering. Look for gpsd's own startup errors near
+the top of the log; the usual cause is a serial device that is missing, or is held
+open by something else.
 
 **The add-on cannot open the serial device.** Make sure no other add-on or
 integration (such as the GPSD integration) is holding the same device.

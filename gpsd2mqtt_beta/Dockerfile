@@ -26,4 +26,10 @@ COPY gpsd2mqtt.py /
 
 RUN chmod a+x /run.sh /gpsd2mqtt.py
 
+# Reports the container unhealthy when gpsd stops answering, which the Supervisor
+# acts on when the add-on's Watchdog option is enabled. start-period covers gpsd
+# and the first fix.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+    CMD python3 -c "import socket; socket.create_connection(('127.0.0.1', 2947), 3)" || exit 1
+
 CMD [ "/run.sh" ]
