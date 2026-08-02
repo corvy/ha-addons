@@ -1,0 +1,102 @@
+name: Release
+
+# Creates a GitHub release whenever an add-on's version is bumped on main.
+# The release notes come from that add-on's CHANGELOG.md, so the changelog is
+# the single source of truth and is reviewed in the pull request alongside the
+# code. Nothing is written back to the repository.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "*/config.yaml"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          # Need the previous commit to tell whether version: actually changed,
+          # rather than config.yaml having been touched for some other reason.
+          fetch-depth: 2
+
+      - name: Create releases for bumped add-ons
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          if ! git rev-parse HEAD^ >/dev/null 2>&1; then
+            echo "No previous commit to compare against, nothing to do."
+            exit 0
+          fi
+
+          # Reads `version: "x"` (quoted or not) from an add-on config.yaml.
+          read_version() {
+            sed -n 's/^version:[[:space:]]*"\{0,1\}\([^"]*\)"\{0,1\}[[:space:]]*$/\1/p' | head -1
+          }
+
+          created=0
+          for config in $(git diff --name-only HEAD^ HEAD -- '*/config.yaml'); do
+            addon="$(dirname "$config")"
+            version="$(read_version < "$config")"
+            previous="$(git show "HEAD^:$config" 2>/dev/null | read_version || true)"
+
+            if [ -z "$version" ]; then
+              echo "::warning::$addon - could not read a version, skipping"
+              continue
+            fi
+
+            if [ "$version" = "$previous" ]; then
+              echo "$addon - version unchanged ($version), skipping"
+              continue
+            fi
+
+            if gh release view "$version" >/dev/null 2>&1; then
+              echo "::warning::$addon - release $version already exists, skipping"
+              continue
+            fi
+
+            changelog="$addon/CHANGELOG.md"
+            if [ ! -f "$changelog" ]; then
+              echo "::warning::$addon - no CHANGELOG.md, skipping"
+              continue
+            fi
+
+            # Body of the newest entry: everything after the first "## [" heading,
+            # stopping at the next entry or at the <details> block of older ones.
+            notes="$(awk '
+              /^## \[/     { if (seen) exit; seen = 1; next }
+              /^<details>/ { exit }
+              seen         { print }
+            ' "$changelog")"
+
+            # Trim leading and trailing blank lines.
+            notes="$(printf '%s\n' "$notes" | sed -e '/./,$!d' | tac | sed -e '/./,$!d' | tac)"
+
+            if [ -z "$notes" ]; then
+              echo "::warning::$addon - newest changelog entry is empty, skipping"
+              continue
+            fi
+
+            # Versions ending in b or bN (e.g. 2026.8.0b1) are betas.
+            prerelease=""
+            if printf '%s' "$version" | grep -Eq 'b[0-9]*$'; then
+              prerelease="--prerelease"
+            fi
+
+            echo "$addon - creating release $version (was ${previous:-none})"
+            printf '%s\n' "$notes" | gh release create "$version" \
+              --title "Version $version" \
+              --notes-file - \
+              $prerelease
+            created=$((created + 1))
+          done
+
+          echo "Created $created release(s)."

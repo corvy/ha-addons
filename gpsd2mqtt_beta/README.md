@@ -11,7 +11,7 @@ actual position and automations can act on it. Mosquitto is the expected broker,
 but another one can be configured.
 
 Changes land here first, get tested, and are then promoted to the stable add-on
-with `./rsync.sh`.
+with `./rsync.sh`. See [DEVELOPMENT.md](./DEVELOPMENT.md) for the full process.
 
 See [DOCS.md](./DOCS.md) for setup, all configuration options, the entities the
 add-on creates, and an example automation.
