@@ -1,0 +1,25 @@
+# Pinned explicitly so CI and a local run agree regardless of ruff's shifting
+# defaults or any user-level config.
+
+line-length = 100
+target-version = "py311"
+
+include = ["gpsd2mqtt_beta/*.py", "tests/*.py", "scripts/*.py"]
+
+# `gpsd2mqtt/` is a copy of `gpsd2mqtt_beta/` produced by rsync.sh. Linting it would
+# report every finding twice and invite fixing it in the wrong place.
+exclude = ["gpsd2mqtt"]
+
+[lint]
+select = [
+    "E",   # pycodestyle
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # import sorting
+    "B",   # bugbear
+    "UP",  # pyupgrade
+]
+
+[lint.per-file-ignores]
+# conftest.py has to extend sys.path before it can import the add-on module.
+"tests/conftest.py" = ["E402"]

@@ -17,10 +17,10 @@ jobs:
     outputs:
       addons: ${{ steps.addons.outputs.addons_list }}
     steps:
-      - name: ⤵️ Check out code from GitHub
+      - name: Check out code from GitHub
         uses: actions/checkout@v6
 
-      - name: 🔍 Find add-on directories
+      - name: Find add-on directories
         id: addons
         uses: home-assistant/actions/helpers/find-addons@master
 
@@ -32,10 +32,34 @@ jobs:
       matrix:
         path: ${{ fromJson(needs.find.outputs.addons) }}
     steps:
-      - name: ⤵️ Check out code from GitHub
+      - name: Check out code from GitHub
         uses: actions/checkout@v6
 
-      - name: 🚀 Run Home Assistant Add-on Lint
+      - name: Run Home Assistant Add-on Lint
         uses: frenck/action-addon-linter@v2.21
         with:
           path: "./${{ matrix.path }}"
+
+  python:
+    name: Lint and test the add-on script
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code from GitHub
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install test dependencies
+        run: pip install -r tests/requirements.txt
+
+      - name: Ruff
+        run: ruff check .
+
+      # Tests import the add-on module from gpsd2mqtt_beta/, which is the source of
+      # truth. gpsd2mqtt/ is a copy produced by rsync.sh and is deliberately not
+      # linted or tested separately.
+      - name: Pytest
+        run: pytest tests/ -v
