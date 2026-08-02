@@ -1,5 +1,28 @@
 # Changelog
 
+## [2026.8.0] - 2026-08-01
+
+### Changed
+- GPSD upgraded from 3.26.1 to 3.27.3, which includes the security fixes from 3.27.1 (CVE-2025-67268 and CVE-2025-67269)
+- The log summary no longer says "of required 0 GPS satellites" when no satellite requirement is configured
+- The add-on script has been reorganised internally with no change to behaviour, and MQTT reconnection is now handled by the MQTT library rather than by the add-on
+
+### Fixed
+- Satellite (Sky Data) updates ignored the configured update interval, and were published continuously whenever position updates were being held back by the required-satellites setting
+- An MQTT password containing spaces was silently truncated and failed to authenticate
+- The MQTT password was written to the log in clear text when debug logging was enabled
+- The add-on now shuts down cleanly instead of being force-killed, so restarts and updates are quicker
+- The GPSD options help text no longer suggests "-N". That flag keeps GPSD in the foreground and stops the add-on from finishing startup
+
+### Added
+- Documentation tab in the add-on, covering every configuration option, the entities created and troubleshooting
+
+### Removed
+- The unused "MQTT State Topic" option. It had no effect and could not be used to change any topic
+
+<details>
+<summary>Older changes</summary>
+
 ## [2025.12.0] - 2025-12-10
 - Add option to connect to TCP based device for GPS data
 - Upgrade to version 3.26.1 of GPSD
@@ -16,9 +39,6 @@
 - Upstream changes:
   - Bump actions/checkout from 4.1.7 to 4.2.2
   - Bump frenck/action-addon-linter from 2.15 to 2.18
-
-<details>
-<summary>Older changes</summary>
 
 ## [2024.9.0] - 2024-09-03
  - Added optional debug logging to check if all attributes received gets published to MQTT

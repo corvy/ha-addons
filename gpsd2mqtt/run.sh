@@ -52,7 +52,7 @@ if [ "$INPUT_TYPE" = "serial" ]; then
     /usr/sbin/gpsd ${GPSD_OPTIONS} -s ${BAUDRATE} ${DEVICE}
 elif [ "$INPUT_TYPE" = "tcp" ]; then
     if [ -z "$TCP_HOST" ] || [ -z "$TCP_PORT" ]; then
-        echo "tcp_host og tcp_port må fylles ut for TCP-modus."
+        echo "ERROR: tcp_host and tcp_port must both be set when input_type is tcp."
         exit 1
     fi
     echo "Starting GPSD with TCP source ${TCP_HOST}:${TCP_PORT} ..."
@@ -67,13 +67,22 @@ fi
 #/usr/bin/gpsctl
 
 # Start python script to publish results from GPSD to MQTT
-if [ $HA_AUTH = true ]; then
+if [ "$HA_AUTH" = true ]; then
     echo "Starting MQTT Publisher with integrated credentials ... "
-    else
+else
     echo "Starting MQTT Publisher with username ${MQTT_USER} ... "
 fi
-    
-python /gpsd2mqtt.py ${MQTT_USER} ${MQTT_PASSWORD}
+
+# Credentials go through the environment rather than the command line: argv
+# would expose the password in `ps`, and an unquoted password containing spaces
+# would be split into separate arguments.
+export MQTT_USER
+export MQTT_PASSWORD
+
+# exec so python replaces this shell as the process the supervisor signals --
+# otherwise bash sits in wait() and never forwards SIGTERM, and the add-on only
+# stops when it gets SIGKILLed.
+exec python /gpsd2mqtt.py
 
 
 # Config file for gpsd server
