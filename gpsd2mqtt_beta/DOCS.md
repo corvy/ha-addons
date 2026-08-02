@@ -114,6 +114,29 @@ as `null` when stationary so Home Assistant does not expire the attributes.
 **`sensor.gpsd_service_sky_data`** — the number of satellites currently used for
 the fix, with the full gpsd SKY report as attributes.
 
+### Availability
+
+Both entities go **unavailable** when the add-on stops, rather than keeping their
+last position indefinitely. This covers a clean stop as well as a crash or a lost
+connection — in the latter case the broker publishes it on the add-on's behalf.
+
+Nothing is retained on the broker, so uninstalling the add-on leaves no trace: the
+entities simply disappear rather than lingering as permanently unavailable.
+
+### Recovery
+
+The add-on restarts itself when things go wrong, rather than sitting there looking
+healthy:
+
+- If gpsd stops responding, the add-on reports itself unhealthy. Enable
+  **Watchdog** on the add-on's Info tab and Home Assistant will restart it. The
+  add-on also gives up on its own after about a minute without any GPS data, which
+  restarts it the same way.
+- If the MQTT broker restarts, the add-on reconnects and re-announces its entities
+  automatically. No Home Assistant restart is needed.
+- If the MQTT credentials are wrong, the add-on stops with a clear error in the log
+  instead of retrying silently forever.
+
 ## Example: keep the home zone on your actual position
 
 ```yaml
@@ -146,6 +169,15 @@ discovery has been sent.
 **Position never updates.** Check the summary line in the log. If it reports
 fewer satellites than required, either lower **Required number of satellites** or
 improve the receiver's view of the sky. A cold start can take several minutes.
+
+**Entities show as unavailable.** The add-on is not running, or cannot reach the
+broker. Check the add-on log — if it stopped on an MQTT error, the reason is the
+last line.
+
+**The add-on keeps restarting.** With **Watchdog** enabled, Home Assistant
+restarts it whenever gpsd stops answering. Look for gpsd's own startup errors near
+the top of the log; the usual cause is a serial device that is missing, or is held
+open by something else.
 
 **The add-on cannot open the serial device.** Make sure no other add-on or
 integration (such as the GPSD integration) is holding the same device.

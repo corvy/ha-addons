@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 """Check invariants across the add-on config.yaml files.
 
-`config.yaml` is deliberately excluded from `gpsd2mqtt_beta/rsync.sh`, because the
-slug, name, version and image must differ between the two channels. The cost is
-that schema changes have to be mirrored by hand, and nothing used to notice when
-that was forgotten -- `mqtt_state` was removed from beta in 2026.8.0 and the prod
-changelog said so, but it sat in the prod schema for another release.
+`config.yaml` is excluded from `gpsd2mqtt_beta/rsync.sh` because slug, name,
+version and image must differ between channels, so schema changes have to be
+mirrored by hand. This catches the ones that are not.
 
 Run from the repository root, or with the repository root as the only argument.
 """
@@ -16,8 +14,7 @@ import sys
 
 import yaml
 
-# The two channels of the same add-on. Everything a user configures must be
-# identical between them; only packaging differs.
+# Two channels of one add-on; only packaging may differ between them.
 MIRRORED_CHANNELS = ("gpsd2mqtt", "gpsd2mqtt_beta")
 
 # Keys that must match across the channels above.
@@ -72,9 +69,7 @@ def check_versions(addons, errors):
             errors.append(f"{slug}/config.yaml has no version")
             continue
 
-        # Two add-ons at the same version would collide on the GitHub release tag
-        # created by .github/workflows/release.yaml, and the second would be
-        # silently skipped.
+        # Release tags come from version:, so a collision silently skips one.
         if version in seen:
             errors.append(
                 f"{slug} and {seen[version]} both declare version {version}; "
@@ -82,8 +77,7 @@ def check_versions(addons, errors):
             )
         seen[version] = slug
 
-        # This is what keeps the uniqueness above true by construction rather
-        # than by luck: beta always carries the suffix, prod never does.
+        # Keeps the uniqueness above true by construction.
         is_beta_channel = slug.endswith("_beta")
         has_beta_suffix = bool(BETA_SUFFIX.search(version))
         if is_beta_channel and not has_beta_suffix:
@@ -99,9 +93,8 @@ def check_images(addons, errors):
         image = config.get("image")
         if not image:
             continue
-        # Prod pointed at the beta image repository for eight months in 2025
-        # because both folders build identical code, so the mislabelled image
-        # worked and nobody noticed.
+        # Both folders build identical code, so a mislabelled image still works
+        # and goes unnoticed.
         if image in seen:
             errors.append(
                 f"{slug} and {seen[image]} both publish to {image}"

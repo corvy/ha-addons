@@ -58,8 +58,7 @@ jobs:
       - name: Ruff
         run: ruff check .
 
-      # Tests import the add-on module from gpsd2mqtt_beta/, which is the source of
-      # truth. gpsd2mqtt/ is a copy produced by rsync.sh and is deliberately not
-      # linted or tested separately.
+      # Tests import from gpsd2mqtt_beta/, the source of truth. gpsd2mqtt/ is an
+      # rsync copy and is not linted or tested separately.
       - name: Pytest
         run: pytest tests/ -v

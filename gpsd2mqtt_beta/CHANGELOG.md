@@ -1,5 +1,27 @@
 # Changelog
 
+## [2026.8.1b2] - 2026-08-02
+
+### Added
+- The device tracker and Sky Data sensor now report availability. They show as unavailable when the add-on stops, whether it stops cleanly or crashes, and leave nothing behind on the broker when the add-on is uninstalled
+- The add-on now reports itself unhealthy when GPSD stops responding, so enabling **Watchdog** on the Info tab restarts it automatically. Previously a dead GPSD left the add-on running and apparently healthy
+
+### Fixed
+- Publishing could stall for as long as the system clock was stepped backwards, which happens on installs where GPS is also used as a time source
+- The entities are re-announced when the MQTT broker restarts, so they recover without restarting Home Assistant
+- Wrong MQTT credentials now stop the add-on with a clear error instead of retrying silently forever
+- Stopping the add-on no longer waits out the GPSD retry delay
+- The add-on now gives up and restarts if GPSD produces no data at all for about a minute, instead of retrying indefinitely
+- The log summary no longer reports "0.0 minutes" when the summary interval is under a minute
+
+### Changed
+- GPSD is now installed with a minimum version rather than an exact one, so a routine Alpine update no longer breaks the build at an arbitrary time
+- The AppArmor profile no longer refers to a hardcoded Python version
+- The startup log reports the Python version in use alongside the GPSD version
+
+<details>
+<summary>Older changes</summary>
+
 ## [2026.8.1b1] - 2026-08-02
 
 ### Changed
@@ -7,9 +29,6 @@
 
 ### Added
 - Automated tests and linting now run on every pull request, covering option parsing, GPS report transformation, publish throttling and the MQTT discovery payloads. Test code is not part of the add-on image
-
-<details>
-<summary>Older changes</summary>
 
 ## [2026.8.0b2] - 2026-08-01
 

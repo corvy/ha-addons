@@ -1,9 +1,8 @@
 """Shared fixtures.
 
-The add-on script is imported from `gpsd2mqtt_beta/`, which is the source of truth --
-`gpsd2mqtt/` is a copy produced by `gpsd2mqtt_beta/rsync.sh` and must never be edited
-directly. Tests live at the repository root rather than inside either add-on so that
-rsync does not duplicate them into the release folder.
+Imports the add-on script from `gpsd2mqtt_beta/`, the source of truth;
+`gpsd2mqtt/` is an rsync copy. Tests live at the repository root so rsync does
+not duplicate them into the release folder.
 """
 
 import pathlib
@@ -14,8 +13,7 @@ import pytest
 REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
 ADDON_SOURCE = REPO_ROOT / "gpsd2mqtt_beta"
 
-# Prepended, not appended: the prod add-on directory is also named `gpsd2mqtt`, and
-# being first means the module file always wins over the directory.
+# Prepended so the module file wins over the prod directory of the same name.
 sys.path.insert(0, str(ADDON_SOURCE))
 
 import gpsd2mqtt  # noqa: E402
@@ -28,12 +26,16 @@ def module():
 
 
 class FakePublish:
-    """One recorded call to `client.publish()`."""
+    """One recorded call to `client.publish()`, doubling as its MQTTMessageInfo."""
 
     def __init__(self, topic, payload, retain):
         self.topic = topic
         self.payload = payload
         self.retain = retain
+        self.waited_for = None
+
+    def wait_for_publish(self, timeout=None):
+        self.waited_for = timeout
 
     def json(self):
         import json
@@ -53,7 +55,9 @@ class FakeClient:
         self.will = None
 
     def publish(self, topic, payload=None, qos=0, retain=False):
-        self.published.append(FakePublish(topic, payload, retain))
+        call = FakePublish(topic, payload, retain)
+        self.published.append(call)
+        return call
 
     def subscribe(self, topic):
         self.subscribed.append(topic)

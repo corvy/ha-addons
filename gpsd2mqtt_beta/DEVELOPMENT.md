@@ -109,6 +109,23 @@ Newest entry visible, everything older folded into one `<details>` block:
 Use only the sections you need. Versions are calendar-based: `YYYY.M.P`, with
 betas adding `bN`.
 
+## Version numbers
+
+The month is the month of *release*, and the beta number names the prod release it
+will **become** — not the one already shipped. So after `2026.8.0` goes out, the
+next beta cycle opens at `2026.8.1b1` and promotes to `2026.8.1`. If a cycle slips
+into the next month, both numbers move together.
+
+The release tag is the `version:` string verbatim, so the format here is the format
+on the releases page. Two consequences:
+
+- **Do not zero-pad the month.** `2026.8.1`, not `2026.08.1`. The `2026.08.0` tag is
+  a one-off from before releases were automated; it is left alone because it is
+  published, but nothing should match it.
+- **No two add-ons may share a version.** Tags are repository-wide, so a collision
+  would silently skip the second release. The `bN` suffix is what keeps beta and
+  prod apart, and `scripts/check_addons.py` enforces all of this in CI.
+
 **The changelog is the source of truth for GitHub releases.**
 `.github/workflows/release.yaml` watches `main` for a changed `version:` in any
 add-on's `config.yaml`. When it sees one it creates the GitHub release: tag and
@@ -126,19 +143,24 @@ Two things follow from this:
 
 Nothing is ever committed back to `main` by CI.
 
-## Upgrading GPSD
+## Pinning policy
 
-`gpsd` is pinned to an exact version from the Alpine **edge** repository,
-because Alpine stable lags behind. Edge is a rolling repository, so the pinned
-version eventually disappears and the build fails at `apk add` with "unable to
-select packages". That failure is the signal to bump the pin.
+Keep pins and repository overrides to a minimum, and stay on standard Alpine
+releases wherever possible. Every pin is something that rots later. What exists
+today, and what would remove it:
 
-Check what edge currently has:
-https://pkgs.alpinelinux.org/packages?name=gpsd&branch=edge&repo=main
+| Pin | Why it exists | How it goes away |
+|---|---|---|
+| `gpsd>=3.27.1` from **edge** | Stable is on 3.26.1, which has CVE-2025-67268 and CVE-2025-67269 | Alpine stable reaching 3.27.1; then drop the `--repository` override too |
+| `py3-paho-mqtt<2` | `gpsd2mqtt.py` uses the v1 callback signatures | Migrating to the 2.x `CallbackAPIVersion` API |
+| `gpsdclient==1.3.2` (pip) | No Alpine package exists | An Alpine package appearing |
 
-Update both `gpsd` and `gpsd-clients` in `gpsd2mqtt_beta/Dockerfile` to the same
-version. `run.sh` logs `gpsd --version` at startup, so the add-on log confirms
-which version is actually running.
+Python is **not** pinned — it follows the Alpine base image, so nothing may
+hardcode a python minor version. `run.sh` logs both the python and gpsd versions
+at startup, so the add-on log shows what is actually running.
+
+Check what Alpine currently ships:
+https://pkgs.alpinelinux.org/packages?name=gpsd&repo=main
 
 ## Verifying a release
 

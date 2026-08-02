@@ -72,6 +72,7 @@ def test_topic_names_are_stable(module):
     assert topics.sky_config == "homeassistant/sensor/gpsd2mqtt/abc12345_sky/config"
     assert topics.sky_state == "gpsd2mqtt/abc12345_sky/state"
     assert topics.sky_attr == "gpsd2mqtt/abc12345_sky/attribute"
+    assert topics.availability == "gpsd2mqtt/abc12345/availability"
 
 
 def test_unique_identifier_is_stable_and_short(module):
@@ -179,3 +180,43 @@ def test_summary_is_not_due_immediately(module):
     stats = module.Stats()
 
     assert not stats.due(3600)
+
+
+def test_summary_reports_seconds_when_the_interval_is_short(
+    module, config_factory, caplog
+):
+    """"in last 0 minutes" reads as a bug; sub-minute intervals are configurable."""
+    stats = module.Stats(published_updates=1, max_satellites=5, accuracy="3D fix")
+
+    with caplog.at_level(logging.INFO, logger="gpsd2mqtt"):
+        stats.emit(config_factory())
+
+    assert "0 minutes" not in caplog.text
+    assert "seconds" in caplog.text
+
+
+def test_summary_before_any_fix_does_not_say_none(module, config_factory, caplog):
+    """The first summary can land before any TPV has arrived."""
+    stats = module.Stats()
+
+    with caplog.at_level(logging.INFO, logger="gpsd2mqtt"):
+        stats.emit(config_factory())
+
+    assert "Achieved None" not in caplog.text
+
+
+def test_clocks_are_monotonic(module):
+    """Wall clock would stall every publish if chrony stepped the clock backwards.
+
+    gpsd is itself a common time source on these installs, so this is not
+    hypothetical.
+    """
+    throttle = module.Throttle(10)
+    stats = module.Stats()
+
+    # A wall-clock implementation would hold a datetime here, not a float from
+    # time.monotonic(). Monotonic values are also unrelated to the epoch.
+    assert isinstance(throttle._last, float)
+    assert isinstance(stats.last_summary, float)
+    assert throttle._last < time.time() - 3600 * 24
+    assert stats.last_summary < time.time() - 3600 * 24
