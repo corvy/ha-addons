@@ -63,7 +63,7 @@ class Config:
 
     @classmethod
     def load(cls, path=OPTIONS_PATH):
-        with open(path, "r") as options_file:
+        with open(path) as options_file:
             data = json.load(options_file)
 
         # publish_interval needs an explicit None check rather than `or`: 0 is a

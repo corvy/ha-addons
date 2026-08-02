@@ -1,0 +1,11 @@
+# Test-only dependencies. Pinned so a CI run and a local run agree.
+#
+# paho-mqtt and gpsdclient are pinned to the versions the add-on image actually
+# ships (see gpsd2mqtt_beta/Dockerfile) -- gpsd2mqtt.py imports both at module
+# level, so they have to be importable for the tests to collect at all.
+paho-mqtt==1.6.1
+gpsdclient==1.3.2
+
+pytest==9.1.1
+ruff==0.16.1
+PyYAML==6.0.3

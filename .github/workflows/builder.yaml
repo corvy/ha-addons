@@ -22,10 +22,40 @@ jobs:
     steps:
       - name: Check out the repository
         uses: actions/checkout@v6
+        with:
+          # Full history so the diff below can reach the merge base.
+          fetch-depth: 0
 
       - name: Get changed files
         id: changed_files
-        uses: jitterbit/get-changed-files@v1
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          PUSH_AFTER: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          if [[ "${EVENT_NAME}" == "pull_request" ]]; then
+            # Diff against the merge base, not the base tip. Comparing to the tip
+            # requires the PR head to be a strict descendant of base, which it is
+            # not after main receives a merge commit that dev never got -- that is
+            # what the previous action failed on.
+            base="$(git merge-base "${PR_BASE_SHA}" "${PR_HEAD_SHA}")"
+            head="${PR_HEAD_SHA}"
+          else
+            base="${PUSH_BEFORE}"
+            head="${PUSH_AFTER}"
+            # An all-zero "before" means a new branch or a force push, where there
+            # is no previous state to compare against.
+            if [[ -z "${base}" || "${base}" =~ ^0+$ ]] || ! git cat-file -e "${base}^{commit}" 2>/dev/null; then
+              base="${head}^"
+            fi
+          fi
+
+          echo "Comparing ${base}...${head}"
+          git diff --name-only "${base}" "${head}" | tee /tmp/changed_files.txt
 
       - name: Find add-on directories
         id: addons
@@ -34,28 +64,31 @@ jobs:
       - name: Get changed add-ons
         id: changed_addons
         run: |
-          declare -a changed_addons
+          set -euo pipefail
+
+          declare -a changed_addons=()
           for addon in ${{ steps.addons.outputs.addons }}; do
-            if [[ "${{ steps.changed_files.outputs.all }}" =~ $addon ]]; then
-              for file in ${{ env.MONITORED_FILES }}; do
-                  if [[ "${{ steps.changed_files.outputs.all }}" =~ $addon/$file ]]; then
-                    if [[ ! "${changed_addons[@]}" =~ $addon ]]; then
-                      changed_addons+=("\"${addon}\",");
-                    fi
-                  fi
-              done
-            fi
+            for file in ${{ env.MONITORED_FILES }}; do
+              # Exact path match. The previous compare was an unanchored regex and
+              # worked only by luck of the directory names. The second grep covers
+              # `rootfs`, which is a directory rather than a file.
+              if grep -qxF "${addon}/${file}" /tmp/changed_files.txt \
+                || grep -qF "${addon}/${file}/" /tmp/changed_files.txt; then
+                changed_addons+=("${addon}")
+                break
+              fi
+            done
           done
 
-          changed=$(echo ${changed_addons[@]} | rev | cut -c 2- | rev)
-
-          if [[ -n ${changed} ]]; then
-            echo "Changed add-ons: $changed";
-            echo "changed=true" >> $GITHUB_OUTPUT;
-            echo "addons=[$changed]" >> $GITHUB_OUTPUT;
-          else
+          if [[ ${#changed_addons[@]} -eq 0 ]]; then
             echo "No add-on had any monitored files changed (${{ env.MONITORED_FILES }})";
+            exit 0
           fi
+
+          echo "Changed add-ons: ${changed_addons[*]}";
+          printf -v json '"%s",' "${changed_addons[@]}"
+          echo "changed=true" >> $GITHUB_OUTPUT;
+          echo "addons=[${json%,}]" >> $GITHUB_OUTPUT;
   build:
     needs: init
     runs-on: ubuntu-latest
