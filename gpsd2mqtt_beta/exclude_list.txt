@@ -5,6 +5,8 @@ exclude_list.txt
 README.md
 rsync.sh
 config.yaml
+# Maintainer notes, not part of the shipped add-on.
+DEVELOPMENT.md
 # The two add-ons keep separate release histories -- without this, promoting
 # beta would overwrite the release changelog with the beta one.
 CHANGELOG.md
