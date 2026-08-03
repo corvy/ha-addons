@@ -23,10 +23,6 @@ Run gpsd and publish the position to MQTT as a device tracker. This is the one t
 
 Development channel for the App above, flagged `experimental`. Not intended for general use — install the stable version instead.
 
-### [Signal K to MQTT](./signalk2mqtt)
-
-This App does not work, will be deleted. 
-
 ## Development
 
 Changes are made in `gpsd2mqtt_beta/` and promoted to `gpsd2mqtt/` by running
