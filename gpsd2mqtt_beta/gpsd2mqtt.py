@@ -272,16 +272,38 @@ class SourceHealth:
 
     Monotonic for the same reason as Throttle. Held in main() rather than the
     stream loop, so a drought spanning several gpsd sessions still adds up.
+
+    Starts unavailable: the add-on being up says nothing about whether there is
+    a position. Availability is claimed only once one has been published, which
+    means it follows the user's own publish_3d_fix_only and min_n_satellites
+    settings rather than a second, separate rule.
     """
 
     last_tpv: float = dataclasses.field(default_factory=time.monotonic)
-    available: bool = True
+    has_position: bool = False
+    available: bool = False
 
     def mark_tpv(self):
         self.last_tpv = time.monotonic()
 
+    def mark_position(self):
+        self.has_position = True
+
     def silent_for(self):
         return time.monotonic() - self.last_tpv
+
+
+def describe_position_gate(config):
+    """Word the conditions a position must meet before it is published."""
+    requirements = []
+    if config.publish_3d_fix_only:
+        requirements.append("a 3D fix")
+    if config.min_n_satellites:
+        requirements.append(f"{config.min_n_satellites} satellites")
+
+    if not requirements:
+        return "any position report from gpsd"
+    return " and ".join(requirements)
 
 
 def get_unique_identifier():
@@ -310,28 +332,34 @@ def check_source_health(client, topics, health, config):
     Raises SourceLost once the drought is long enough that only a restart is
     likely to help.
     """
-    if config.source_timeout == 0:
+    silent = health.silent_for()
+
+    # A timeout of 0 disables the drought handling, but the entities must still
+    # become available once there is a position to report.
+    if config.source_timeout:
+        lost_after = config.source_timeout * config.source_lost_multiplier
+        if config.source_lost_multiplier and silent >= lost_after:
+            raise SourceLost(f"No position reports from gpsd for {int(silent)} seconds.")
+        stale = silent >= config.source_timeout
+    else:
+        stale = False
+
+    # Latched on the first published position: only a drought takes availability
+    # away again, so a fix lost under poor sky does not flap the entities.
+    wanted = health.has_position and not stale
+    if wanted == health.available:
         return
 
-    silent = health.silent_for()
-    lost_after = config.source_timeout * config.source_lost_multiplier
-
-    if config.source_lost_multiplier and silent >= lost_after:
-        raise SourceLost(f"No position reports from gpsd for {int(silent)} seconds.")
-
-    stale = silent >= config.source_timeout
-    if stale and health.available:
-        health.available = False
-        publish_availability(client, topics, False)
+    health.available = wanted
+    publish_availability(client, topics, wanted)
+    if wanted:
+        logger.info("Position published. Entities are now available.")
+    else:
         logger.warning(
             "No position reports from gpsd for %s seconds. Marking the entities "
             "unavailable -- check the GPS source.",
             int(silent),
         )
-    elif not stale and not health.available:
-        health.available = True
-        publish_availability(client, topics, True)
-        logger.info("Position reports from gpsd resumed. Entities are available again.")
 
 
 def publish_discovery(client, topics, unique_id, available=True):
@@ -533,7 +561,7 @@ def handle_sky(client, topics, report, config, throttle, stats):
     return n_satellites >= config.min_n_satellites
 
 
-def handle_tpv(client, topics, report, config, throttle, stats):
+def handle_tpv(client, topics, report, config, throttle, stats, health):
     """Publish a position update, subject to the fix and throttle settings."""
     report = normalise_tpv(report)
     stats.accuracy = report["accuracy"]
@@ -551,6 +579,9 @@ def handle_tpv(client, topics, report, config, throttle, stats):
     client.publish(topics.attr, json.dumps(report))
     stats.published_updates += 1
     throttle.mark()
+    # Availability follows the gates above, so it is marked here rather than on
+    # the arrival of any TPV.
+    health.mark_position()
     logger.debug("Published TPV: %s to topic: %s", report, topics.attr)
 
 
@@ -594,7 +625,9 @@ def stream_gps(client, topics, config, stats, health):
                 # still proves the source is alive.
                 health.mark_tpv()
                 if publish_position:
-                    handle_tpv(client, topics, report, config, tpv_throttle, stats)
+                    handle_tpv(
+                        client, topics, report, config, tpv_throttle, stats, health
+                    )
 
             check_source_health(client, topics, health, config)
 
@@ -688,6 +721,12 @@ def main():
     if not wait_for_connection(client, config, state):
         client.loop_stop()
         return 0 if not _running else 1
+
+    logger.info(
+        "Entities stay unavailable until the first position is published, which "
+        "needs %s.",
+        describe_position_gate(config),
+    )
 
     exit_code = 0
     stats = Stats()

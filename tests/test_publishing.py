@@ -209,12 +209,12 @@ def test_sky_gate_is_open_when_no_requirement_is_set(
 # --- TPV -------------------------------------------------------------------
 
 
-def test_tpv_publishes_a_normalised_position(module, client, topics, config_factory):
+def test_tpv_publishes_a_normalised_position(module, client, topics, config_factory, health):
     stats = module.Stats()
     report = {"class": "TPV", "mode": 3, "lat": 59.9, "lon": 10.7}
 
     module.handle_tpv(
-        client, topics, report, config_factory(), module.Throttle(0), stats
+        client, topics, report, config_factory(), module.Throttle(0), stats, health
     )
 
     published = client.for_topic(topics.attr)[0].json()
@@ -224,22 +224,22 @@ def test_tpv_publishes_a_normalised_position(module, client, topics, config_fact
     assert stats.published_updates == 1
 
 
-def test_tpv_position_updates_are_not_retained(module, client, topics, config_factory):
+def test_tpv_position_updates_are_not_retained(module, client, topics, config_factory, health):
     module.handle_tpv(
         client, topics, {"class": "TPV", "mode": 3, "lat": 1.0, "lon": 2.0},
-        config_factory(), module.Throttle(0), module.Stats(),
+        config_factory(), module.Throttle(0), module.Stats(), health,
     )
 
     assert client.for_topic(topics.attr)[0].retain is False
 
 
-def test_tpv_withholds_a_poor_fix_by_default(module, client, topics, config_factory):
+def test_tpv_withholds_a_poor_fix_by_default(module, client, topics, config_factory, health):
     stats = module.Stats()
 
     for mode in (1, 2):
         module.handle_tpv(
             client, topics, {"class": "TPV", "mode": mode, "lat": 1.0, "lon": 2.0},
-            config_factory(publish_3d_fix_only=True), module.Throttle(0), stats,
+            config_factory(publish_3d_fix_only=True), module.Throttle(0), stats, health,
         )
 
     assert client.for_topic(topics.attr) == []
@@ -247,33 +247,31 @@ def test_tpv_withholds_a_poor_fix_by_default(module, client, topics, config_fact
 
 
 def test_tpv_publishes_a_poor_fix_when_the_user_opts_in(
-    module, client, topics, config_factory
-):
+    module, client, topics, config_factory, health):
     stats = module.Stats()
 
     module.handle_tpv(
         client, topics, {"class": "TPV", "mode": 2, "lat": 1.0, "lon": 2.0},
-        config_factory(publish_3d_fix_only=False), module.Throttle(0), stats,
+        config_factory(publish_3d_fix_only=False), module.Throttle(0), stats, health,
     )
 
     assert len(client.for_topic(topics.attr)) == 1
 
 
 def test_tpv_records_accuracy_even_when_the_update_is_withheld(
-    module, client, topics, config_factory
-):
+    module, client, topics, config_factory, health):
     """The summary should still report what was achieved, not stay blank."""
     stats = module.Stats()
 
     module.handle_tpv(
         client, topics, {"class": "TPV", "mode": 2, "lat": 1.0, "lon": 2.0},
-        config_factory(publish_3d_fix_only=True), module.Throttle(0), stats,
+        config_factory(publish_3d_fix_only=True), module.Throttle(0), stats, health,
     )
 
     assert stats.accuracy == "2D fix"
 
 
-def test_tpv_updates_are_throttled(module, client, topics, config_factory):
+def test_tpv_updates_are_throttled(module, client, topics, config_factory, health):
     stats = module.Stats()
     throttle = module.Throttle(3600)
     config = config_factory()
@@ -281,15 +279,14 @@ def test_tpv_updates_are_throttled(module, client, topics, config_factory):
     for _ in range(5):
         module.handle_tpv(
             client, topics, {"class": "TPV", "mode": 3, "lat": 1.0, "lon": 2.0},
-            config, throttle, stats,
+            config, throttle, stats, health,
         )
 
     assert client.for_topic(topics.attr) == []
 
 
 def test_a_withheld_poor_fix_does_not_consume_the_throttle(
-    module, client, topics, config_factory
-):
+    module, client, topics, config_factory, health):
     """A 2D fix must not reset the clock and delay the 3D fix that follows it."""
     stats = module.Stats()
     throttle = module.Throttle(0.01)
@@ -300,11 +297,11 @@ def test_a_withheld_poor_fix_does_not_consume_the_throttle(
     time.sleep(0.05)
     module.handle_tpv(
         client, topics, {"class": "TPV", "mode": 2, "lat": 1.0, "lon": 2.0},
-        config, throttle, stats,
+        config, throttle, stats, health,
     )
     module.handle_tpv(
         client, topics, {"class": "TPV", "mode": 3, "lat": 1.0, "lon": 2.0},
-        config, throttle, stats,
+        config, throttle, stats, health,
     )
 
     assert len(client.for_topic(topics.attr)) == 1

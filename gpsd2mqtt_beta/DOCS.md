@@ -37,10 +37,19 @@ The App creates a single **GPSD Service** device with two entities.
 `track` and `magtrack` are only reported by gpsd while moving. They are published
 as `null` when stationary so Home Assistant does not expire the attributes.
 
-Both entities go **unavailable** when the App stops or loses the GPS source,
-rather than keeping their last position indefinitely. Nothing is retained on the
-broker, so uninstalling the App leaves no trace — the entities disappear
-rather than lingering as permanently unavailable.
+Both entities start **unavailable** and become available once a position has
+actually been published — the App being up says nothing about whether there is a
+GPS position. What counts as a position is your own **3D Fix Only** and
+**Required number of satellites** settings; the log states which of them it is
+waiting for at startup. On a cold start that means the entities stay unavailable
+until the receiver gets its first fix, which can take a few minutes.
+
+Once available they stay available while the fix comes and goes, so driving
+through a tunnel does not flap them. Only the App stopping, or the GPS source
+going silent for `source_timeout`, takes them unavailable again.
+
+Nothing is retained on the broker, so uninstalling the App leaves no trace — the
+entities disappear rather than lingering as permanently unavailable.
 
 ## Example: keep the home zone on your actual position
 
