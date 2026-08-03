@@ -5,3 +5,6 @@ updates:
     schedule:
       interval: weekly
       time: "06:00"
+    ignore:
+      # Pinned in builder.yaml to the last release with a published builder image.
+      - dependency-name: "home-assistant/builder"

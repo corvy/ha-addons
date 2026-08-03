@@ -129,7 +129,10 @@ jobs:
 
       - name: Build ${{ matrix.addon }} add-on
         if: steps.check.outputs.build_arch == 'true'
-        uses: home-assistant/builder@2026.06.0
+        # Pinned: newer tags have no matching ghcr.io/home-assistant/{arch}-builder
+        # image, so the build fails on pull. Migrate to the reusable actions in
+        # home-assistant/builder/actions rather than bumping this.
+        uses: home-assistant/builder@2026.03.2
         with:
           args: |
             ${{ env.BUILD_ARGS }} \
