@@ -41,8 +41,8 @@ def test_state_describes_the_failure_in_words(module):
 
 
 @pytest.fixture
-def built(module, config_factory, topics):
-    client, state = module.build_client(config_factory(), topics, "abc12345")
+def built(module, config_factory, topics, health):
+    client, state = module.build_client(config_factory(), topics, "abc12345", health)
     yield client, state
     client.loop_stop()
 

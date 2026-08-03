@@ -1,16 +1,16 @@
-# Stian B. Barmens Home Assistant add-on repository
+# Stian B. Barmens Home Assistant App repository
 
-This addon repoistory was made to publish my first addon since I was missing a GPSD addon that published updated status to MQTT. 
+This App repository was made to publish my first App, since I was missing one that ran GPSD and published updated status to MQTT.
 
 [![Open your Home Assistant instance and show the add add-on repository dialog with a specific repository URL pre-filled.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fcorvy%2Fha-addons)
 
 ## Support the work I do
-If you want to show your support for the efforts I make in supporting these addons, please buy me a coffee!
+If you want to show your support for the efforts I make in supporting these Apps, please buy me a coffee!
 [<img src="https://miro.medium.com/v2/resize:fit:320/format:webp/1*LUqcagBr2LbRg2GHZKQUJg.png">](https://buymeacoffee.com/sbarmen)
 
-## Add-ons
+## Apps
 
-This repository contains the following add-ons
+This repository contains the following Apps.
 
 ### [GPSD to MQTT](./gpsd2mqtt)
 
@@ -21,11 +21,11 @@ Run gpsd and publish the position to MQTT as a device tracker. This is the one t
 
 ### [GPSD to MQTT Beta](./gpsd2mqtt_beta)
 
-Development channel for the add-on above, flagged `experimental`. Not intended for general use — install the stable version instead.
+Development channel for the App above, flagged `experimental`. Not intended for general use — install the stable version instead.
 
 ### [Signal K to MQTT](./signalk2mqtt)
 
-This add-on does not work, will be deleted. 
+This App does not work, will be deleted. 
 
 ## Development
 

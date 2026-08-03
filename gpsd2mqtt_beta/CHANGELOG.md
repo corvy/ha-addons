@@ -1,5 +1,21 @@
 # Changelog
 
+## [2026.8.1b3] - 2026-08-03
+
+### Fixed
+- A GPS source that goes away while GPSD keeps running is now detected. GPSD carries on reporting satellite data with no position behind it, so the add-on kept publishing nothing while Home Assistant showed the last known position as if it were current. Both entities now go unavailable, and the add-on restarts to reconnect GPSD to the source
+- The log summary no longer reports the last known fix long after it went stale. A summary interval with no position at all now says so
+- The add-on waits for the MQTT service to appear instead of stopping at once when the Supervisor has not registered it yet, which could stop the add-on from starting after a reboot. The error when it really is missing now says what is actually wrong
+
+### Added
+- **GPS source timeout** and **GPS source restart multiplier** options control how long without a position before the entities go unavailable (default 10 minutes) and how many multiples of that before the add-on restarts (default 3, so 30 minutes). Set the multiplier to 0 to never restart, or the timeout to 0 to disable the check
+
+### Changed
+- The MQTT password is now masked in the add-on configuration instead of being shown in clear text
+
+<details>
+<summary>Older changes</summary>
+
 ## [2026.8.1b2] - 2026-08-02
 
 ### Added
@@ -18,9 +34,6 @@
 - GPSD is now installed with a minimum version rather than an exact one, so a routine Alpine update no longer breaks the build at an arbitrary time
 - The AppArmor profile no longer refers to a hardcoded Python version
 - The startup log reports the Python version in use alongside the GPSD version
-
-<details>
-<summary>Older changes</summary>
 
 ## [2026.8.1b1] - 2026-08-02
 

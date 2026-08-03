@@ -54,5 +54,11 @@ configuration:
   publish_interval:
     name: Update Interval in seconds
     description: Minimum delay between publishing of updated GPS position to the device tracker. Defaults to 10 seconds. Set to 0 to disable and publish all updates.
+  source_timeout:
+    name: GPS source timeout in seconds
+    description: How long without a position report from GPSD before the entities are marked unavailable. Catches a disconnected GPS source, which GPSD itself keeps answering for. Defaults to 600 seconds. Set to 0 to disable the check.
+  source_lost_multiplier:
+    name: GPS source restart multiplier
+    description: Multiples of the GPS source timeout to wait before restarting the add-on, which restarts GPSD and reconnects the source. Defaults to 3, so 30 minutes at the default timeout. Set to 0 to keep the entities unavailable without ever restarting.
 network:
   2947/tcp: GPSD Port (default 2947). Disabled by default as it is not needed for MQTT, only if you want to use the GPSD integration, or another use-case where direct connection to GPSD is needed.

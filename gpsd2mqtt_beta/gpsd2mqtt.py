@@ -57,6 +57,17 @@ GPSD_STREAM_TIMEOUT = 30
 # Consecutive gpsd sessions yielding no reports before treating gpsd as gone.
 MAX_BARREN_SESSIONS = 12
 
+# gpsd keeps emitting SKY frames when its own source is dead, so a stream that
+# is useless rather than silent never trips the timeout or the counter above.
+# The absence of TPV is the signal instead. After source_timeout the entities
+# are marked unavailable; after source_timeout * source_lost_multiplier the
+# add-on exits, so the Supervisor restarts gpsd and it re-dials a tcp:// source,
+# which gpsd does not do on its own. Both are add-on options: a timeout of 0
+# disables the check, a multiplier of 0 keeps the entities unavailable without
+# ever restarting.
+DEFAULT_SOURCE_TIMEOUT = 600
+DEFAULT_SOURCE_LOST_MULTIPLIER = 3
+
 # gpsd TPV "mode" values, see https://gpsd.gitlab.io/gpsd/gpsd_json.html
 FIX_MODES = {1: "No fix", 2: "2D fix", 3: "3D fix"}
 MODE_3D_FIX = 3
@@ -81,6 +92,8 @@ class Config:
     min_n_satellites: int
     publish_interval: int
     summary_interval: int
+    source_timeout: int
+    source_lost_multiplier: int
     debug: bool
 
     @classmethod
@@ -95,6 +108,16 @@ class Config:
         if publish_interval is None:
             publish_interval = 10
 
+        # Same reason: 0 disables the source check, and 0 for the multiplier
+        # means never restart.
+        source_timeout = data.get("source_timeout")
+        if source_timeout is None:
+            source_timeout = DEFAULT_SOURCE_TIMEOUT
+
+        source_lost_multiplier = data.get("source_lost_multiplier")
+        if source_lost_multiplier is None:
+            source_lost_multiplier = DEFAULT_SOURCE_LOST_MULTIPLIER
+
         return cls(
             device=data.get("device"),
             baudrate=data.get("baudrate") or 9600,
@@ -108,6 +131,8 @@ class Config:
             min_n_satellites=data.get("min_n_satellites") or 0,
             publish_interval=publish_interval,
             summary_interval=data.get("summary_interval") or 120,
+            source_timeout=source_timeout,
+            source_lost_multiplier=source_lost_multiplier,
             debug=data.get("debug", False),
         )
 
@@ -121,6 +146,8 @@ class Config:
         logger.debug("MQTT Username: %s", self.mqtt_username)
         logger.debug("Publish interval: %s", self.publish_interval)
         logger.debug("Summary interval: %s", self.summary_interval)
+        logger.debug("Source timeout: %s", self.source_timeout)
+        logger.debug("Source lost multiplier: %s", self.source_lost_multiplier)
         logger.debug("Required satellites: %s", self.min_n_satellites)
         logger.debug("Debug enabled: %s", self.debug)
 
@@ -174,7 +201,8 @@ class Stats:
 
     published_updates: int = 0
     max_satellites: int = 0
-    accuracy: str = "no fix yet"
+    # None once a summary has been emitted with no position report in it.
+    accuracy: str | None = "no fix yet"
     # Monotonic, for the same reason as Throttle.
     last_summary: float = dataclasses.field(default_factory=time.monotonic)
 
@@ -191,7 +219,15 @@ class Stats:
             f"in last {span}."
         )
 
-        if config.min_n_satellites == 0:
+        if self.accuracy is None:
+            # No TPV at all this interval, which is what a dead GPS source looks
+            # like: gpsd keeps sending SKY, so the counters alone look benign.
+            logger.warning(
+                "%s No position reports from gpsd in this interval -- check the "
+                "GPS source.",
+                preamble,
+            )
+        elif config.min_n_satellites == 0:
             # No requirement configured, so there is nothing to fall short of --
             # reporting "of required 0" just reads as noise.
             logger.info(
@@ -220,7 +256,32 @@ class Stats:
 
         self.published_updates = 0
         self.max_satellites = 0
+        # Reset with the counters: a retained accuracy reports the last fix as
+        # current long after the source has gone.
+        self.accuracy = None
         self.last_summary = time.monotonic()
+
+
+class SourceLost(Exception):
+    """gpsd has produced no position reports for long enough to give up on."""
+
+
+@dataclasses.dataclass
+class SourceHealth:
+    """Tracks how long gpsd has gone without a position report.
+
+    Monotonic for the same reason as Throttle. Held in main() rather than the
+    stream loop, so a drought spanning several gpsd sessions still adds up.
+    """
+
+    last_tpv: float = dataclasses.field(default_factory=time.monotonic)
+    available: bool = True
+
+    def mark_tpv(self):
+        self.last_tpv = time.monotonic()
+
+    def silent_for(self):
+        return time.monotonic() - self.last_tpv
 
 
 def get_unique_identifier():
@@ -236,7 +297,44 @@ def get_unique_identifier():
     return hashlib.sha256(seed.encode()).hexdigest()[:8]
 
 
-def publish_discovery(client, topics, unique_id):
+def publish_availability(client, topics, available):
+    """Announce whether the entities should be shown as available."""
+    client.publish(
+        topics.availability, PAYLOAD_ONLINE if available else PAYLOAD_OFFLINE
+    )
+
+
+def check_source_health(client, topics, health, config):
+    """Mark the entities unavailable while gpsd has no position to give.
+
+    Raises SourceLost once the drought is long enough that only a restart is
+    likely to help.
+    """
+    if config.source_timeout == 0:
+        return
+
+    silent = health.silent_for()
+    lost_after = config.source_timeout * config.source_lost_multiplier
+
+    if config.source_lost_multiplier and silent >= lost_after:
+        raise SourceLost(f"No position reports from gpsd for {int(silent)} seconds.")
+
+    stale = silent >= config.source_timeout
+    if stale and health.available:
+        health.available = False
+        publish_availability(client, topics, False)
+        logger.warning(
+            "No position reports from gpsd for %s seconds. Marking the entities "
+            "unavailable -- check the GPS source.",
+            int(silent),
+        )
+    elif not stale and not health.available:
+        health.available = True
+        publish_availability(client, topics, True)
+        logger.info("Position reports from gpsd resumed. Entities are available again.")
+
+
+def publish_discovery(client, topics, unique_id, available=True):
     """Publish the Home Assistant MQTT discovery configs.
 
     Deliberately NOT retained. A retained config outlives the add-on: uninstall
@@ -300,7 +398,9 @@ def publish_discovery(client, topics, unique_id):
     client.publish(topics.sky_config, json.dumps(sky_sensor))
 
     # After the configs, so Home Assistant knows which topic to watch first.
-    client.publish(topics.availability, PAYLOAD_ONLINE)
+    # Not unconditionally online: a reconnect while the GPS source is dead must
+    # not resurrect the entities.
+    publish_availability(client, topics, available)
 
     logger.info("Published MQTT discovery message to topic: %s", topics.config)
     logger.debug("Device tracker discovery payload: %s", device_tracker)
@@ -323,7 +423,7 @@ class ConnectionState:
         return FATAL_CONNECT_CODES.get(self.last_rc, f"return code {self.last_rc}")
 
 
-def build_client(config, topics, unique_id):
+def build_client(config, topics, unique_id, health):
     """Create the MQTT client and wire up its callbacks.
 
     Reconnection is left to paho: loop_start() retries in the background using
@@ -349,7 +449,7 @@ def build_client(config, topics, unique_id):
         )
         # On every connect, not just the first: nothing is retained, so a broker
         # restart leaves Home Assistant with no config to rediscover us from.
-        publish_discovery(client, topics, unique_id)
+        publish_discovery(client, topics, unique_id, health.available)
 
     def on_disconnect(client, userdata, rc):
         if rc != 0:
@@ -360,7 +460,7 @@ def build_client(config, topics, unique_id):
     def on_message(client, userdata, msg):
         logger.debug("Received message: %s %s", msg.topic, msg.payload)
         if msg.topic == HA_STATUS_TOPIC and msg.payload.decode() == "online":
-            publish_discovery(client, topics, unique_id)
+            publish_discovery(client, topics, unique_id, health.available)
             logger.info("Home Assistant reboot detected. Re-sent MQTT discovery message.")
 
     def on_log(client, userdata, level, buf):
@@ -454,7 +554,7 @@ def handle_tpv(client, topics, report, config, throttle, stats):
     logger.debug("Published TPV: %s to topic: %s", report, topics.attr)
 
 
-def stream_gps(client, topics, config, stats):
+def stream_gps(client, topics, config, stats, health):
     """Consume one gpsd session, publishing until the stream ends.
 
     Returns the number of reports seen, so the caller can tell a gpsd that is
@@ -489,8 +589,14 @@ def stream_gps(client, topics, config, stats):
                 publish_position = handle_sky(
                     client, topics, report, config, sky_throttle, stats
                 )
-            elif report_class == "TPV" and publish_position:
-                handle_tpv(client, topics, report, config, tpv_throttle, stats)
+            elif report_class == "TPV":
+                # Marked before the gate: a TPV withheld for want of satellites
+                # still proves the source is alive.
+                health.mark_tpv()
+                if publish_position:
+                    handle_tpv(client, topics, report, config, tpv_throttle, stats)
+
+            check_source_health(client, topics, health, config)
 
             if stats.due(config.summary_interval):
                 stats.emit(config)
@@ -568,7 +674,8 @@ def main():
     logger.debug("MQTT Config: %s", topics.config)
     logger.debug("MQTT Attribute: %s", topics.attr)
 
-    client, state = build_client(config, topics, unique_id)
+    health = SourceHealth()
+    client, state = build_client(config, topics, unique_id, health)
 
     # connect_async tolerates a broker that is not up yet: loop_start keeps
     # retrying in the background instead of raising here.
@@ -589,7 +696,17 @@ def main():
     while _running:
         logger.info("Starting location detection and sending GPS updates.")
         try:
-            seen = stream_gps(client, topics, config, stats)
+            seen = stream_gps(client, topics, config, stats, health)
+        except SourceLost as err:
+            # gpsd is answering but has nothing to say. Restarting takes gpsd
+            # with it, which is what re-dials a dropped tcp:// source.
+            logger.error(
+                "%s Giving up so the add-on is restarted -- check the GPS source "
+                "and the log above for gpsd startup errors.",
+                err,
+            )
+            exit_code = 1
+            break
         except TimeoutError:
             # gpsd went quiet; the stream can only be reopened, not resumed.
             seen = 0

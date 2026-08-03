@@ -33,15 +33,35 @@ elif [ "$STOPBIT" -eq 2 ]; then
 fi
 
 
+MQTT_SERVICE_ATTEMPTS=12
+MQTT_SERVICE_RETRY_DELAY=5
+
+# The Supervisor reports no MQTT service for a while when the add-on starts
+# before the broker, so one failed lookup is not conclusive. Its own error
+# output is suppressed; only the outcome is worth logging.
+wait_for_mqtt_service() {
+    local attempt
+    for attempt in $(seq 1 ${MQTT_SERVICE_ATTEMPTS}); do
+        if bashio::var.has_value "$(bashio::services 'mqtt' 2>/dev/null)"; then
+            return 0
+        fi
+        echo "Waiting for the MQTT service from the Supervisor (${attempt}/${MQTT_SERVICE_ATTEMPTS}) ..."
+        sleep ${MQTT_SERVICE_RETRY_DELAY}
+    done
+    return 1
+}
+
 # Check if mqtt username is set, if not get it from Home Assistant via bashio::services
-if bashio::config.is_empty 'mqtt_username' && bashio::var.has_value "$(bashio::services 'mqtt')"; then
-    MQTT_USER="$(bashio::services 'mqtt' 'username')"
-    MQTT_PASSWORD="$(bashio::services 'mqtt' 'password')"
-    HA_AUTH=true
-elif bashio::config.is_empty 'mqtt_username'; then
-    echo "ERROR: Not able to use HA integrated authentication, and no credentials manually configured. "
-    echo "ERROR: Please update configuration with your own credentials to continue."
-    exit 1 # Exit the script as we will not be able to authenticate to MQTT
+if bashio::config.is_empty 'mqtt_username'; then
+    if wait_for_mqtt_service; then
+        MQTT_USER="$(bashio::services 'mqtt' 'username')"
+        MQTT_PASSWORD="$(bashio::services 'mqtt' 'password')"
+        HA_AUTH=true
+    else
+        echo "ERROR: The Supervisor offered no MQTT service after $((MQTT_SERVICE_ATTEMPTS * MQTT_SERVICE_RETRY_DELAY)) seconds."
+        echo "ERROR: Install the Mosquitto broker add-on, or set MQTT Username and MQTT Password in the configuration to use your own broker."
+        exit 1 # Exit the script as we will not be able to authenticate to MQTT
+    fi
 fi
 
 if [ "$INPUT_TYPE" = "serial" ]; then
