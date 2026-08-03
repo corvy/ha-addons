@@ -82,6 +82,11 @@ def topics(module):
     return module.Topics.for_device("abc12345")
 
 
+@pytest.fixture
+def health(module):
+    return module.SourceHealth()
+
+
 def make_config(module, **overrides):
     """Build a Config without going through options.json."""
     defaults = dict(
@@ -95,6 +100,8 @@ def make_config(module, **overrides):
         min_n_satellites=0,
         publish_interval=10,
         summary_interval=120,
+        source_timeout=600,
+        source_lost_multiplier=3,
         debug=False,
     )
     defaults.update(overrides)
