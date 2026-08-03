@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           # Need the previous commit to tell whether version: actually changed,
           # rather than config.yaml having been touched for some other reason.
