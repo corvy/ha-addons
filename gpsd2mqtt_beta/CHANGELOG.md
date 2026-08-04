@@ -1,5 +1,13 @@
 # Changelog
 
+## [2026.8.1b7] - 2026-08-04
+
+### Changed
+- No functional changes. This release only clears warnings from the container build
+
+<details>
+<summary>Older changes</summary>
+
 ## [2026.8.1b6] - 2026-08-04
 
 ### Fixed
@@ -7,9 +15,6 @@
 
 ### Changed
 - The add-on waits up to 120 seconds for the MQTT service to appear, up from 60
-
-<details>
-<summary>Older changes</summary>
 
 ## [2026.8.1b5] - 2026-08-04
 

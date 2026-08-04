@@ -160,7 +160,10 @@ jobs:
           arch: ${{ matrix.arch }}
           context: ./${{ matrix.addon }}
           image: ${{ steps.check.outputs.image }}
-          image-tags: ${{ steps.check.outputs.version }}
+          # latest is what build-image verifies and reuses as its registry cache.
+          image-tags: |
+            ${{ steps.check.outputs.version }}
+            latest
           version: ${{ steps.check.outputs.version }}
           # PRs verify only, merges to main publish.
           push: ${{ github.event_name == 'push' }}
