@@ -69,6 +69,14 @@ jobs:
               continue
             fi
 
+            # The newest entry must be the version being released, otherwise the
+            # notes below would silently be the previous release's.
+            newest="$(sed -n 's/^## \[\([^]]*\)\].*/\1/p' "$changelog" | head -1)"
+            if [ "$newest" != "$version" ]; then
+              echo "::warning::$addon - newest changelog entry is ${newest:-none}, not $version, skipping"
+              continue
+            fi
+
             # Body of the newest entry: everything after the first "## [" heading,
             # stopping at the next entry or at the <details> block of older ones.
             notes="$(awk '
