@@ -33,16 +33,23 @@ elif [ "$STOPBIT" -eq 2 ]; then
 fi
 
 
-MQTT_SERVICE_ATTEMPTS=12
+MQTT_SERVICE_ATTEMPTS=24
 MQTT_SERVICE_RETRY_DELAY=5
 
+# True when the Supervisor offers an MQTT service. Queried directly rather than
+# through bashio, which logs an error line per failed lookup.
+mqtt_service_ready() {
+    curl -sf -o /dev/null \
+        -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
+        "http://supervisor/services/mqtt"
+}
+
 # The Supervisor reports no MQTT service for a while when the add-on starts
-# before the broker, so one failed lookup is not conclusive. Its own error
-# output is suppressed; only the outcome is worth logging.
+# before the broker, so one failed lookup is not conclusive.
 wait_for_mqtt_service() {
     local attempt
     for attempt in $(seq 1 ${MQTT_SERVICE_ATTEMPTS}); do
-        if bashio::var.has_value "$(bashio::services 'mqtt' 2>/dev/null)"; then
+        if mqtt_service_ready; then
             return 0
         fi
         echo "Waiting for the MQTT service from the Supervisor (${attempt}/${MQTT_SERVICE_ATTEMPTS}) ..."

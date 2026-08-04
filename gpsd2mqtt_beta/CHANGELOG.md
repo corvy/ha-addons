@@ -1,12 +1,20 @@
 # Changelog
 
+## [2026.8.1b6] - 2026-08-04
+
+### Fixed
+- Waiting for the MQTT broker no longer fills the log with errors. Starting before the broker is normal, and the add-on now reports only that it is waiting
+
+### Changed
+- The add-on waits up to 120 seconds for the MQTT service to appear, up from 60
+
+<details>
+<summary>Older changes</summary>
+
 ## [2026.8.1b5] - 2026-08-04
 
 ### Changed
 - No functional changes. This release only verifies the new container build process
-
-<details>
-<summary>Older changes</summary>
 
 ## [2026.8.1b4] - 2026-08-03
 
