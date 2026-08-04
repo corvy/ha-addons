@@ -1,3 +1,5 @@
+# check=skip=InvalidDefaultArgInFrom
+# The builder always supplies BUILD_FROM, and a default would pin one arch.
 ARG BUILD_FROM
 FROM $BUILD_FROM
 
