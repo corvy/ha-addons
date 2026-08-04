@@ -1,7 +1,6 @@
 name: Builder
 
 env:
-  BUILD_ARGS: "--test"
   MONITORED_FILES: "build.yaml config.yaml Dockerfile rootfs"
 
 on:
@@ -86,9 +85,15 @@ jobs:
           echo "addons=[${json%,}]" >> $GITHUB_OUTPUT;
   build:
     needs: init
-    runs-on: ubuntu-latest
+    # Native runner per arch, no QEMU.
+    runs-on: ${{ matrix.arch == 'aarch64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
     if: needs.init.outputs.changed == 'true'
     name: Build ${{ matrix.arch }} ${{ matrix.addon }} add-on
+    permissions:
+      contents: read
+      packages: write
+      # Keyless cosign signing.
+      id-token: write
     strategy:
       matrix:
         addon: ${{ fromJson(needs.init.outputs.changed_addons) }}
@@ -107,37 +112,63 @@ jobs:
 
       - name: Check if add-on should be built
         id: check
+        env:
+          ADDON: ${{ matrix.addon }}
+          ARCH: ${{ matrix.arch }}
+          SUPPORTED: ${{ steps.info.outputs.architectures }}
+          RAW_IMAGE: ${{ steps.info.outputs.image }}
+          RAW_VERSION: ${{ steps.info.outputs.version }}
+          RAW_NAME: ${{ steps.info.outputs.name }}
+          RAW_DESCRIPTION: ${{ steps.info.outputs.description }}
+          RAW_URL: ${{ steps.info.outputs.url }}
         run: |
-          if [[ "${{ steps.info.outputs.architectures }}" =~ ${{ matrix.arch }} ]]; then
-             echo "build_arch=true" >> $GITHUB_OUTPUT;
-             echo "image=$(echo ${{ steps.info.outputs.image }} | cut -d'/' -f3)" >> $GITHUB_OUTPUT;
-             if [[ -z "${{ github.head_ref }}" ]] && [[ "${{ github.event_name }}" == "push" ]]; then
-                 echo "BUILD_ARGS=" >> $GITHUB_ENV;
-             fi
-           else
-             echo "${{ matrix.arch }} is not a valid arch for ${{ matrix.addon }}, skipping build";
-             echo "build_arch=false" >> $GITHUB_OUTPUT;
+          set -euo pipefail
+
+          if [[ ! "${SUPPORTED}" =~ ${ARCH} ]]; then
+            echo "${ARCH} is not a valid arch for ${ADDON}, skipping build"
+            echo "build_arch=false" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
 
-      - name: Login to GitHub Container Registry
-        if: env.BUILD_ARGS != '--test'
-        uses: docker/login-action@v4.6.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          # The info helper emits JSON scalars, so every value arrives quoted.
+          # Strip that, and flatten the escaped newline in the description.
+          clean() {
+            local value="$1"
+            value="${value#\"}"
+            value="${value%\"}"
+            printf '%s' "${value//\\n/ }"
+          }
+
+          image="$(clean "${RAW_IMAGE}")"
+
+          {
+            echo "build_arch=true"
+            # Resolve the {arch} placeholder from config.yaml.
+            echo "image=${image//\{arch\}/${ARCH}}"
+            echo "version=$(clean "${RAW_VERSION}")"
+            echo "name=$(clean "${RAW_NAME}")"
+            echo "description=$(clean "${RAW_DESCRIPTION}")"
+            echo "url=$(clean "${RAW_URL}")"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Build ${{ matrix.addon }} add-on
         if: steps.check.outputs.build_arch == 'true'
-        # Pinned: newer tags have no matching ghcr.io/home-assistant/{arch}-builder
-        # image, so the build fails on pull. Migrate to the reusable actions in
-        # home-assistant/builder/actions rather than bumping this.
-        uses: home-assistant/builder@2026.03.2
+        # Generic action: it supplies BUILD_ARCH, BUILD_VERSION and the
+        # io.hass.arch/version labels, the add-on metadata below is on us.
+        uses: home-assistant/builder/actions/build-image@2026.06.0
         with:
-          args: |
-            ${{ env.BUILD_ARGS }} \
-            --${{ matrix.arch }} \
-            --target /data/${{ matrix.addon }} \
-            --image "${{ steps.check.outputs.image }}" \
-            --docker-hub "ghcr.io/${{ github.repository_owner }}" \
-            --addon
+          arch: ${{ matrix.arch }}
+          context: ./${{ matrix.addon }}
+          image: ${{ steps.check.outputs.image }}
+          image-tags: ${{ steps.check.outputs.version }}
+          version: ${{ steps.check.outputs.version }}
+          # PRs verify only, merges to main publish.
+          push: ${{ github.event_name == 'push' }}
+          container-registry-password: ${{ secrets.GITHUB_TOKEN }}
+          build-args: |
+            BUILD_FROM=ghcr.io/home-assistant/${{ matrix.arch }}-base:latest
+          labels: |
+            io.hass.name=${{ steps.check.outputs.name }}
+            io.hass.description=${{ steps.check.outputs.description }}
+            io.hass.type=addon
+            io.hass.url=${{ steps.check.outputs.url }}
