@@ -1,13 +1,18 @@
 # Changelog
 
+## [2026.8.1b5] - 2026-08-04
+
+### Changed
+- No functional changes. This release only verifies the new container build process
+
+<details>
+<summary>Older changes</summary>
+
 ## [2026.8.1b4] - 2026-08-03
 
 ### Fixed
 - The entities no longer show as available for a while after every start before going unavailable again. They now stay unavailable until a position has actually been published, so a GPS that never produces one never claims to be working. What counts as a position follows your own **3D Fix Only** and **Required number of satellites** settings, and the log states which of them it is waiting for
 - Once available, the entities stay available while the fix comes and goes. Only a GPS source that stops reporting altogether takes them unavailable, so poor sky no longer flaps them
-
-<details>
-<summary>Older changes</summary>
 
 ## [2026.8.1b3] - 2026-08-03
 
