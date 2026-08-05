@@ -1,12 +1,17 @@
 # Changelog
 
+## [2026.8.1b9] - 2026-08-05
+
+### Fixed
+- The entities could stay unavailable after a Home Assistant restart while the add-on carried on publishing positions normally. Home Assistant only starts listening for the availability status once it has processed the discovery message, so the status sent alongside it could be missed and was never repeated. The status is now repeated with every position update, so the entities recover on their own within one update interval
+
+<details>
+<summary>Older changes</summary>
+
 ## [2026.8.1b8] - 2026-08-05
 
 ### Changed
 - No functional changes. This release only tidies comments in the source, corrects how the MQTT library pin is documented, and adds a test covering the publish rate limiter's clock
-
-<details>
-<summary>Older changes</summary>
 
 ## [2026.8.1b7] - 2026-08-04
 

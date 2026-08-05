@@ -233,6 +233,31 @@ def test_tpv_position_updates_are_not_retained(module, client, topics, config_fa
     assert client.for_topic(topics.attr)[0].retain is False
 
 
+def test_tpv_re_asserts_availability(module, client, topics, config_factory, health):
+    """Home Assistant subscribes after the config, so it can miss the first payload."""
+    health.available = True
+
+    module.handle_tpv(
+        client, topics, {"class": "TPV", "mode": 3, "lat": 1.0, "lon": 2.0},
+        config_factory(), module.Throttle(0), module.Stats(), health,
+    )
+
+    published = client.for_topic(topics.availability)
+    assert [call.payload for call in published] == [module.PAYLOAD_ONLINE]
+    assert published[0].retain is False
+
+
+def test_tpv_does_not_claim_availability_before_it_is_granted(
+    module, client, topics, config_factory, health):
+    """check_source_health owns the transition; re-asserting must not pre-empt it."""
+    module.handle_tpv(
+        client, topics, {"class": "TPV", "mode": 3, "lat": 1.0, "lon": 2.0},
+        config_factory(), module.Throttle(0), module.Stats(), health,
+    )
+
+    assert client.for_topic(topics.availability) == []
+
+
 def test_tpv_withholds_a_poor_fix_by_default(module, client, topics, config_factory, health):
     stats = module.Stats()
 
