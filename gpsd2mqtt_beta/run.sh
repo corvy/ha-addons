@@ -105,3 +105,4 @@ export MQTT_PASSWORD
 
 # Using exec so watchdog from supervisor in Home Assistant works
 exec python /gpsd2mqtt.py
+
