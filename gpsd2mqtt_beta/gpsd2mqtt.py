@@ -569,6 +569,12 @@ def handle_tpv(client, topics, report, config, throttle, stats, health):
     # Availability follows the gates above, so it is marked here rather than on
     # the arrival of any TPV.
     health.mark_position()
+    # Re-assert, because Home Assistant subscribes to the availability topic
+    # only after processing a discovery config and nothing is retained, so the
+    # payload sent with the config can be missed. Transitions stay in
+    # check_source_health.
+    if health.available:
+        publish_availability(client, topics, True)
     logger.debug("Published TPV: %s to topic: %s", report, topics.attr)
 
 
