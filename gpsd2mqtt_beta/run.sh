@@ -32,10 +32,6 @@ elif [ "$STOPBIT" -eq 2 ]; then
   STOPBIT_CL="cstopb"
 fi
 
-
-MQTT_SERVICE_ATTEMPTS=24
-MQTT_SERVICE_RETRY_DELAY=5
-
 # True when the Supervisor offers an MQTT service. Queried directly rather than
 # through bashio, which logs an error line per failed lookup.
 mqtt_service_ready() {
@@ -43,6 +39,9 @@ mqtt_service_ready() {
         -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
         "http://supervisor/services/mqtt"
 }
+
+MQTT_SERVICE_ATTEMPTS=24
+MQTT_SERVICE_RETRY_DELAY=5
 
 # The Supervisor reports no MQTT service for a while when the add-on starts
 # before the broker, so one failed lookup is not conclusive.
@@ -90,9 +89,6 @@ else
     exit 1
 fi
 
-#echo "Checking device settings"
-#/usr/bin/gpsctl
-
 # Start python script to publish results from GPSD to MQTT
 if [ "$HA_AUTH" = true ]; then
     echo "Starting MQTT Publisher with integrated credentials ... "
@@ -100,37 +96,12 @@ else
     echo "Starting MQTT Publisher with username ${MQTT_USER} ... "
 fi
 
-# Python is unpinned and follows the Alpine base; log which one is running.
+# Show Python version before starting the script
 echo "Using $(python3 --version 2>&1)"
 
-# Credentials go through the environment rather than the command line: argv
-# would expose the password in `ps`, and an unquoted password containing spaces
-# would be split into separate arguments.
+# Move credentials to env to avoid publishing password to log when debugging
 export MQTT_USER
 export MQTT_PASSWORD
 
-# exec so python replaces this shell as the process the supervisor signals --
-# otherwise bash sits in wait() and never forwards SIGTERM, and the add-on only
-# stops when it gets SIGKILLed.
+# Using exec so watchdog from supervisor in Home Assistant works
 exec python /gpsd2mqtt.py
-
-
-# Config file for gpsd server
-#usage: gpsd [OPTIONS] device...
-#
-#  Options include:
-#  -?, -h, --help            = help message
-#  -b, --readonly            = bluetooth-safe: open data sources read-only
-#  -D, --debug integer       = set debug level, default 0
-#  -F, --sockfile sockfile   = specify control socket location, default none
-#  -f, --framing FRAMING     = fix device framing to FRAMING (8N1, 8O1, etc.)
-#  -G, --listenany           = make gpsd listen on INADDR_ANY
-#  -l, --drivers             = list compiled in drivers, and exit.
-#  -n, --nowait              = don't wait for client connects to poll GPS
-#  -N, --foreground          = don't go into background
-#  -P, --pidfile pidfile     = set file to record process ID
-#  -p, --passive             = do not reconfigure the receiver automatically
-#  -r, --badtime             = use GPS time even if no fix
-#  -S, --port PORT           = set port for daemon, default 2947
-#  -s, --speed SPEED         = fix device speed to SPEED, default none
-#  -V, --version             = emit version and exit.

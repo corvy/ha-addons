@@ -51,20 +51,14 @@ GPSD_RETRY_DELAY = 5
 
 # Hang-breaker, not a poll interval. gpsd emits about once a second, so this
 # only fires when gpsd is wedged. A timeout ends the stream rather than pausing
-# it: gpsdclient reads through makefile(), whose buffer is undefined after one.
 GPSD_STREAM_TIMEOUT = 30
 
 # Consecutive gpsd sessions yielding no reports before treating gpsd as gone.
 MAX_BARREN_SESSIONS = 12
 
-# gpsd keeps emitting SKY frames when its own source is dead, so a stream that
-# is useless rather than silent never trips the timeout or the counter above.
-# The absence of TPV is the signal instead. After source_timeout the entities
-# are marked unavailable; after source_timeout * source_lost_multiplier the
-# add-on exits, so the Supervisor restarts gpsd and it re-dials a tcp:// source,
-# which gpsd does not do on its own. Both are add-on options: a timeout of 0
-# disables the check, a multiplier of 0 keeps the entities unavailable without
-# ever restarting.
+# In case of absent TPV signal entities go unavailable after source_timeout; the
+# add-on exits after source_timeout * source_lost_multiplier, since only a restart
+# re-dials a tcp:// source. Both are options; 0 disables each.
 DEFAULT_SOURCE_TIMEOUT = 600
 DEFAULT_SOURCE_LOST_MULTIPLIER = 3
 
@@ -74,7 +68,7 @@ MODE_3D_FIX = 3
 
 logger = logging.getLogger("gpsd2mqtt")
 
-# Cleared by SIGTERM/SIGINT so the add-on can stop without waiting for SIGKILL.
+# Cleared by SIGTERM/SIGINT; polled by the blocking loops to unwind cleanly.
 _running = True
 
 
@@ -108,7 +102,7 @@ class Config:
         if publish_interval is None:
             publish_interval = 10
 
-        # Same reason: 0 disables the source check, and 0 for the multiplier
+        # 0 disables the source check, and 0 for the multiplier
         # means never restart.
         source_timeout = data.get("source_timeout")
         if source_timeout is None:
@@ -123,8 +117,6 @@ class Config:
             baudrate=data.get("baudrate") or 9600,
             mqtt_broker=data.get("mqtt_broker") or "core-mosquitto",
             mqtt_port=data.get("mqtt_port") or 1883,
-            # run.sh exports these, resolving Home Assistant's integrated MQTT
-            # credentials when the user has not configured their own.
             mqtt_username=os.environ.get("MQTT_USER") or data.get("mqtt_username") or "",
             mqtt_password=os.environ.get("MQTT_PASSWORD") or data.get("mqtt_pw") or "",
             publish_3d_fix_only=data.get("publish_3d_fix_only", True),
@@ -178,8 +170,7 @@ class Topics:
 class Throttle:
     """Rate limiter for publishing. An interval of 0 disables throttling.
 
-    Monotonic: chrony, often fed by gpsd itself, steps the system clock, and a
-    backwards step would withhold every update until real time caught up.
+    Monotonic, so a backwards NTP step cannot withhold every update.
     """
 
     def __init__(self, interval):
@@ -416,10 +407,8 @@ def publish_discovery(client, topics, unique_id, available=True):
         "device": device,
     }
 
-    # The one place retain is correct: an empty retained payload is what deletes
-    # a retained message, so this clears the config an older version of the
-    # add-on may have left behind. If nothing is retained there it is a no-op --
-    # brokers do not store empty retained payloads, so this cannot leave garbage.
+    # An empty retained payload deletes a retained message, and is a no-op if
+    # there is none. The only correct use of retain here.
     client.publish(DEPRECATED_CONFIG_TOPIC, "", retain=True)
 
     client.publish(topics.config, json.dumps(device_tracker))
@@ -494,9 +483,7 @@ def build_client(config, topics, unique_id, health):
     def on_log(client, userdata, level, buf):
         logger.debug(buf)
 
-    # NOTE: these are paho-mqtt 1.x callback signatures, and mqtt.Client() takes
-    # no arguments there. paho-mqtt 2.x requires an explicit CallbackAPIVersion,
-    # which is why the Dockerfile constrains the package to 1.x.
+    # paho 1.x callback signatures; 2.x needs an explicit CallbackAPIVersion.
     client = mqtt.Client()
     client.on_connect = on_connect
     client.on_disconnect = on_disconnect

@@ -10,8 +10,5 @@ It runs gpsd and publishes the position to MQTT as a device tracker
 actual position and automations can act on it. Mosquitto is the expected broker,
 but another one can be configured.
 
-Changes land here first, get tested, and are then promoted to the stable App
-with `./rsync.sh`. See [DEVELOPMENT.md](./DEVELOPMENT.md) for the full process.
-
 See [DOCS.md](./DOCS.md) for setup, all configuration options, the entities the
 App creates, and an example automation.
