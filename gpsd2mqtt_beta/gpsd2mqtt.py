@@ -50,7 +50,7 @@ SHUTDOWN_PUBLISH_TIMEOUT = 2
 GPSD_RETRY_DELAY = 5
 
 # Hang-breaker, not a poll interval. gpsd emits about once a second, so this
-# only fires when gpsd is wedged. A timeout ends the stream rather than pausing
+# only fires when gpsd is wedged. A timeout ends the stream rather than pausing.
 GPSD_STREAM_TIMEOUT = 30
 
 # Consecutive gpsd sessions yielding no reports before treating gpsd as gone.
