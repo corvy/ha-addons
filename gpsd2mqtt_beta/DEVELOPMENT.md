@@ -152,7 +152,7 @@ today, and what would remove it:
 | Pin | Why it exists | How it goes away |
 |---|---|---|
 | `gpsd>=3.27.1` from **edge** | Stable is on 3.26.1, which has CVE-2025-67268 and CVE-2025-67269 | Alpine stable reaching 3.27.1; then drop the `--repository` override too |
-| `py3-paho-mqtt<2` | `gpsd2mqtt.py` uses the v1 callback signatures | Migrating to the 2.x `CallbackAPIVersion` API |
+| `py3-paho-mqtt<2` | `gpsd2mqtt.py` uses the v1 callback signatures | Not by an Alpine bump: every branch holds 1.6.1 deliberately, and 2.x is proposed as a separate `py3-paho-mqtt2` aport. Switching means that package or pip, plus the 2.x `CallbackAPIVersion` API |
 | `gpsdclient==1.3.2` (pip) | No Alpine package exists | An Alpine package appearing |
 
 Python is **not** pinned — it follows the Alpine base image, so nothing may

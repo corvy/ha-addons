@@ -111,6 +111,26 @@ def test_throttle_becomes_ready_after_the_interval(module):
     assert throttle.ready()
 
 
+def test_throttle_reads_the_monotonic_clock(module, monkeypatch):
+    """A backwards wall-clock step must not withhold updates until time catches up."""
+
+    def forbidden():
+        raise AssertionError("Throttle must not read the wall clock")
+
+    clock = [1000.0]
+    monkeypatch.setattr(module.time, "monotonic", lambda: clock[0])
+    monkeypatch.setattr(module.time, "time", forbidden)
+
+    throttle = module.Throttle(60)
+    throttle.mark()
+
+    assert not throttle.ready()
+
+    clock[0] += 60
+
+    assert throttle.ready()
+
+
 def test_throttles_are_independent(module):
     """SKY and TPV share an interval but must not share a clock.
 

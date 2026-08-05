@@ -1,12 +1,17 @@
 # Changelog
 
+## [2026.8.1b8] - 2026-08-05
+
+### Changed
+- No functional changes. This release only tidies comments in the source, corrects how the MQTT library pin is documented, and adds a test covering the publish rate limiter's clock
+
+<details>
+<summary>Older changes</summary>
+
 ## [2026.8.1b7] - 2026-08-04
 
 ### Changed
 - No functional changes. This release only clears warnings from the container build
-
-<details>
-<summary>Older changes</summary>
 
 ## [2026.8.1b6] - 2026-08-04
 
